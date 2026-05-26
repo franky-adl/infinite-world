@@ -55,10 +55,12 @@ void main()
     modelPosition.xz = getRotatePivot2d(modelPosition.xz, angleToCamera, modelCenter.xz);
 
     // Terrains data
-    vec2 terrainAUv = (modelPosition.xz - uTerrainAOffset.xy) / uTerrainSize;
-    vec2 terrainBUv = (modelPosition.xz - uTerrainBOffset.xy) / uTerrainSize;
-    vec2 terrainCUv = (modelPosition.xz - uTerrainCOffset.xy) / uTerrainSize;
-    vec2 terrainDUv = (modelPosition.xz - uTerrainDOffset.xy) / uTerrainSize;
+    // Sample at the blade center (not the per-vertex rotated position) so that all vertices
+    // of a blade share the same terrain height, preventing height discontinuities.
+    vec2 terrainAUv = (modelCenter.xz - uTerrainAOffset.xy) / uTerrainSize;
+    vec2 terrainBUv = (modelCenter.xz - uTerrainBOffset.xy) / uTerrainSize;
+    vec2 terrainCUv = (modelCenter.xz - uTerrainCOffset.xy) / uTerrainSize;
+    vec2 terrainDUv = (modelCenter.xz - uTerrainDOffset.xy) / uTerrainSize;
 
     float fragmentSize = 1.0 / uTerrainTextureSize;
     vec4 terrainAColor = texture2D(uTerrainATexture, terrainAUv * (1.0 - fragmentSize) + fragmentSize * 0.5);
