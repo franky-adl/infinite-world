@@ -1,37 +1,31 @@
-import Stats from './Stats.js'
-import UI from './UI.js'
+import Stats from "./Stats.js";
+import UI from "./UI.js";
 
-export default class Debug
-{
-    static instance
+export default class Debug {
+    static instance;
 
-    static getInstance()
-    {
-        return Debug.instance
+    static getInstance() {
+        return Debug.instance;
     }
 
-    constructor()
-    {
-        if(Debug.instance)
-            return Debug.instance
+    constructor() {
+        if (Debug.instance) return Debug.instance;
 
-        Debug.instance = this
+        Debug.instance = this;
 
-        this.active = false
+        this.active = false;
 
-        if(location.hash === '#debug')
-        {
-            this.activate()
-        }
+        // if(location.hash === '#debug')
+        // {
+        this.activate();
+        // }
     }
 
-    activate()
-    {
-        if(this.active)
-            return
-            
-        this.active = true
-        this.ui = new UI()
-        this.stats = new Stats()
+    activate() {
+        if (this.active) return;
+
+        this.active = true;
+        this.ui = new UI();
+        this.stats = new Stats();
     }
 }
