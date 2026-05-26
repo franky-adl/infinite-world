@@ -22,7 +22,7 @@ export default class Grass {
         this.count = this.details * this.details;
         // The size of a cell in the grid of grass blades.
         this.fragmentSize = this.size / this.details;
-        this.bladeWidthRatio = 1.5;
+        this.bladeWidthRatio = 0.8;
         this.bladeHeightRatio = 4;
         this.bladeHeightRandomness = 0.5;
         this.positionRandomness = 0.5;
@@ -33,10 +33,131 @@ export default class Grass {
         this.setMesh();
     }
 
+    // Setting up center coordinates for each vertex of each blade - called within setGeometry
+    setCenters(fragmentX, fragmentZ, centers, vertexCount, iX, iZ) {
+        const centerX =
+            fragmentX +
+            (Math.random() - 0.5) * this.fragmentSize * this.positionRandomness;
+        const centerZ =
+            fragmentZ +
+            (Math.random() - 0.5) * this.fragmentSize * this.positionRandomness;
+
+        const iStride = (iX * this.details + iZ) * vertexCount * 2;
+        for (let i = 0; i < vertexCount; i++) {
+            centers[iStride + i * 2] = centerX;
+            centers[iStride + i * 2 + 1] = centerZ;
+        }
+    }
+
+    // Setting up positions coordinates for each vertex of each blade - called within setGeometry
+    setPositions(
+        fragmentX,
+        fragmentZ,
+        positions,
+        tipness,
+        vertexCount,
+        iX,
+        iZ,
+    ) {
+        const bladeWidth = this.fragmentSize * this.bladeWidthRatio;
+        const bladeHalfWidth = bladeWidth * 0.5;
+        const bladeHeight =
+            this.fragmentSize *
+            this.bladeHeightRatio *
+            (1 -
+                this.bladeHeightRandomness +
+                Math.random() * this.bladeHeightRandomness);
+
+        const iStride = (iX * this.details + iZ) * vertexCount * 3;
+        const iStripeT = (iX * this.details + iZ) * vertexCount;
+        // following configuration assumes a 15-vertex blade
+        // bottom - left triangle
+        positions[iStride] = -bladeHalfWidth;
+        positions[iStride + 1] = 0;
+        positions[iStride + 2] = 0;
+        tipness[iStripeT] = 0;
+
+        positions[iStride + 3] = -bladeHalfWidth * 0.9;
+        positions[iStride + 4] = bladeHeight * 0.5;
+        positions[iStride + 5] = 0;
+        tipness[iStripeT + 1] = 0.5;
+
+        positions[iStride + 6] = bladeHalfWidth;
+        positions[iStride + 7] = 0;
+        positions[iStride + 8] = 0;
+        tipness[iStripeT + 2] = 0;
+
+        // bottom - right triangle
+        positions[iStride + 9] = bladeHalfWidth;
+        positions[iStride + 10] = 0;
+        positions[iStride + 11] = 0;
+        tipness[iStripeT + 3] = 0;
+
+        positions[iStride + 12] = -bladeHalfWidth * 0.9;
+        positions[iStride + 13] = bladeHeight * 0.5;
+        positions[iStride + 14] = 0;
+        tipness[iStripeT + 4] = 0.5;
+
+        positions[iStride + 15] = bladeHalfWidth * 0.9;
+        positions[iStride + 16] = bladeHeight * 0.5;
+        positions[iStride + 17] = 0;
+        tipness[iStripeT + 5] = 0.5;
+
+        // middle - left triangle
+        positions[iStride + 18] = -bladeHalfWidth * 0.9;
+        positions[iStride + 19] = bladeHeight * 0.5;
+        positions[iStride + 20] = 0;
+        tipness[iStripeT + 6] = 0.5;
+
+        positions[iStride + 21] = -bladeHalfWidth * 0.6;
+        positions[iStride + 22] = bladeHeight * 0.75;
+        positions[iStride + 23] = 0;
+        tipness[iStripeT + 7] = 0.75;
+
+        positions[iStride + 24] = bladeHalfWidth * 0.9;
+        positions[iStride + 25] = bladeHeight * 0.5;
+        positions[iStride + 26] = 0;
+        tipness[iStripeT + 8] = 0.5;
+
+        // middle - right triangle
+        positions[iStride + 27] = bladeHalfWidth * 0.9;
+        positions[iStride + 28] = bladeHeight * 0.5;
+        positions[iStride + 29] = 0;
+        tipness[iStripeT + 9] = 0.5;
+
+        positions[iStride + 30] = -bladeHalfWidth * 0.6;
+        positions[iStride + 31] = bladeHeight * 0.75;
+        positions[iStride + 32] = 0;
+        tipness[iStripeT + 10] = 0.75;
+
+        positions[iStride + 33] = bladeHalfWidth * 0.6;
+        positions[iStride + 34] = bladeHeight * 0.75;
+        positions[iStride + 35] = 0;
+        tipness[iStripeT + 11] = 0.75;
+
+        // top triangle
+        positions[iStride + 36] = bladeHalfWidth * 0.6;
+        positions[iStride + 37] = bladeHeight * 0.75;
+        positions[iStride + 38] = 0;
+        tipness[iStripeT + 12] = 0.75;
+
+        positions[iStride + 39] = -bladeHalfWidth * 0.6;
+        positions[iStride + 40] = bladeHeight * 0.75;
+        positions[iStride + 41] = 0;
+        tipness[iStripeT + 13] = 0.75;
+
+        // 15th vertex which is the tip of blade
+        positions[iStride + 42] = 0;
+        positions[iStride + 43] = bladeHeight;
+        positions[iStride + 44] = 0;
+        tipness[iStripeT + 14] = 1;
+    }
+
     setGeometry() {
-        const centers = new Float32Array(this.count * 3 * 2);
-        const positions = new Float32Array(this.count * 3 * 3);
-        // const tipness = new Float32Array(this.count * 3)
+        const bladeVertexCount = 15;
+        const centers = new Float32Array(this.count * bladeVertexCount * 2);
+        const positions = new Float32Array(this.count * bladeVertexCount * 3);
+        const tipness = new Float32Array(this.count * bladeVertexCount);
 
         for (let iX = 0; iX < this.details; iX++) {
             const fragmentX =
@@ -47,57 +168,26 @@ export default class Grass {
                     (iZ / this.details - 0.5) * this.size +
                     this.fragmentSize * 0.5;
 
-                const iStride9 = (iX * this.details + iZ) * 9;
-                const iStride6 = (iX * this.details + iZ) * 6;
-                // const iStride3 = (iX * this.details + iZ) * 3
-
+                // For each blade, set vertex attributes:
                 // Center (for blade rotation)
-                const centerX =
-                    fragmentX +
-                    (Math.random() - 0.5) *
-                        this.fragmentSize *
-                        this.positionRandomness;
-                const centerZ =
-                    fragmentZ +
-                    (Math.random() - 0.5) *
-                        this.fragmentSize *
-                        this.positionRandomness;
-
-                centers[iStride6] = centerX;
-                centers[iStride6 + 1] = centerZ;
-
-                centers[iStride6 + 2] = centerX;
-                centers[iStride6 + 3] = centerZ;
-
-                centers[iStride6 + 4] = centerX;
-                centers[iStride6 + 5] = centerZ;
-
-                // Position
-                const bladeWidth = this.fragmentSize * this.bladeWidthRatio;
-                const bladeHalfWidth = bladeWidth * 0.5;
-                const bladeHeight =
-                    this.fragmentSize *
-                    this.bladeHeightRatio *
-                    (1 -
-                        this.bladeHeightRandomness +
-                        Math.random() * this.bladeHeightRandomness);
-
-                positions[iStride9] = -bladeHalfWidth;
-                positions[iStride9 + 1] = 0;
-                positions[iStride9 + 2] = 0;
-
-                positions[iStride9 + 3] = 0;
-                positions[iStride9 + 4] = bladeHeight;
-                positions[iStride9 + 5] = 0;
-
-                positions[iStride9 + 6] = bladeHalfWidth;
-                positions[iStride9 + 7] = 0;
-                positions[iStride9 + 8] = 0;
-
-                // // Tipness
-                // tipness[iStride3    ] = 0
-                // tipness[iStride3 + 1] = 1
-                // tipness[iStride3 + 2] = 0
+                this.setCenters(
+                    fragmentX,
+                    fragmentZ,
+                    centers,
+                    bladeVertexCount,
+                    iX,
+                    iZ,
+                );
+                // Position + tipness
+                this.setPositions(
+                    fragmentX,
+                    fragmentZ,
+                    positions,
+                    tipness,
+                    bladeVertexCount,
+                    iX,
+                    iZ,
+                );
             }
         }
 
@@ -110,7 +200,10 @@ export default class Grass {
             "position",
             new THREE.Float32BufferAttribute(positions, 3),
         );
-        // this.geometry.setAttribute('tipness', new THREE.Float32BufferAttribute(tipness, 1))
+        this.geometry.setAttribute(
+            "tipness",
+            new THREE.Float32BufferAttribute(tipness, 1),
+        );
     }
 
     setMaterial() {
@@ -142,7 +235,7 @@ export default class Grass {
             -0.5,
             -0.5,
         );
-        // this.material.wireframe = true
+        // this.material.wireframe = true;
     }
 
     setMesh() {

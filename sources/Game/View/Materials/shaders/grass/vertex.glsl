@@ -20,7 +20,7 @@ uniform float uFresnelPower;
 uniform vec3 uSunPosition;
 
 attribute vec2 center;
-// attribute float tipness;
+attribute float tipness;
 
 varying vec3 vColor;
 
@@ -84,9 +84,6 @@ void main()
     float distanceScale = getGrassAttenuation(modelCenter.xz); // starts from 1, starts to drop if grass if farther than 30% of the half size
     float scale = distanceScale;
     modelPosition.xyz = mix(modelCenter.xyz, modelPosition.xyz, scale);
-
-    // Tipness - only the 2nd vertex of every triangle is the tip (1.0), (0. if not tip)
-    float tipness = step(2.0, mod(float(gl_VertexID) + 1.0, 3.0));
 
     // Wind - only affect the tip
     vec2 noiseUv = modelPosition.xz * 0.02 + uTime * 0.05;
