@@ -15,9 +15,12 @@ export default class Grass {
         this.scene = this.view.scene;
         this.noises = this.view.noises;
 
+        // The number of grass blades per row/column in the grass mesh.
         this.details = 200 * 1;
+        // The size of the grass mesh.
         this.size = this.state.chunks.minSize * 1;
         this.count = this.details * this.details;
+        // The size of a cell in the grid of grass blades.
         this.fragmentSize = this.size / this.details;
         this.bladeWidthRatio = 1.5;
         this.bladeHeightRatio = 4;
@@ -161,6 +164,7 @@ export default class Grass {
             sunState.position.z,
         );
 
+        // The grass mesh always moves with the player
         this.mesh.position.set(playerPosition[0], 0, playerPosition[2]);
         // this.mesh.position.set(playerPosition[0], playerPosition[1], playerPosition[2])
         this.material.uniforms.uPlayerPosition.value.set(

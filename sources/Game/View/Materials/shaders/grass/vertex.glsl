@@ -37,14 +37,17 @@ void main()
 {
     // Recalculate center and keep around player
     vec2 newCenter = center;
+    // Since the whole grass mesh moves with the player,
+    // Each grass blade needs to move in the opposite direction of the player to maintain its correct world position
     newCenter -= uPlayerPosition.xz;
     float halfSize = uGrassDistance * 0.5;
+    // Use a centered modulo to create the repeating pattern mapped to -halfSize ~ halfSize
     newCenter.x = mod(newCenter.x + halfSize, uGrassDistance) - halfSize;
     newCenter.y = mod(newCenter.y + halfSize, uGrassDistance) - halfSize; // Y considered as Z
     vec4 modelCenter = modelMatrix * vec4(newCenter.x, 0.0, newCenter.y, 1.0);
 
-    // Move grass to center
     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+    // Apply the reverse translation of the grass to the original world position
     modelPosition.xz += newCenter; // Y considered as Z
 
     // Rotate blade to face camera
@@ -74,19 +77,18 @@ void main()
     modelPosition.y += terrainData.a;
     modelCenter.y += terrainData.a;
 
-    // Slope
-    float slope = 1.0 - abs(dot(vec3(0.0, 1.0, 0.0), normal));
+    // Slope (0: flat, 1: vertical)
+    // float slope = 1.0 - abs(dot(vec3(0.0, 1.0, 0.0), normal));
 
-    // Attenuation
-    float distanceScale = getGrassAttenuation(modelCenter.xz);
-    float slopeScale = smoothstep(remap(slope, 0.4, 0.5, 1.0, 0.0), 0.0, 1.0);
-    float scale = distanceScale * slopeScale;
+    // Attenuation - shrink in scale as it gets farther or on steeper slope
+    float distanceScale = getGrassAttenuation(modelCenter.xz); // starts from 1, starts to drop if grass if farther than 30% of the half size
+    float scale = distanceScale;
     modelPosition.xyz = mix(modelCenter.xyz, modelPosition.xyz, scale);
 
-    // Tipness
+    // Tipness - only the 2nd vertex of every triangle is the tip (1.0), (0. if not tip)
     float tipness = step(2.0, mod(float(gl_VertexID) + 1.0, 3.0));
 
-    // Wind
+    // Wind - only affect the tip
     vec2 noiseUv = modelPosition.xz * 0.02 + uTime * 0.05;
     vec4 noiseColor = texture2D(uNoiseTexture, noiseUv);
     modelPosition.x += (noiseColor.x - 0.5) * tipness * scale;
@@ -96,22 +98,23 @@ void main()
     vec4 viewPosition = viewMatrix * modelPosition;
     gl_Position = projectionMatrix * viewPosition;
     
+    // Grass color - default color is used as the terrain color
+    vec3 uGrassDefaultColor = vec3(0.52, 0.65, 0.26);
+    vec3 uGrassShadedColor = vec3(0.52 / 1.3, 0.65 / 1.3, 0.26 / 1.3);
+    // The further away, the closer lowColor is to the terrain color
+    vec3 lowColor = mix(uGrassShadedColor, uGrassDefaultColor, 1.0 - scale); // Match the terrain
+    vec3 color = mix(lowColor, uGrassDefaultColor, tipness);
+
+    // Sun shade - 0 at midday when sun is above, 1 at midnight when sun is below
+    float sunShade = getSunShade(normal);
+    // Gets mixed to the shaded color during midnight
+    color = getSunShadeColor(color, sunShade);
+
+    // Sun reflection - lerps to white based on sun reflection and fresnel amount
     vec3 viewDirection = normalize(modelPosition.xyz - cameraPosition);
     // vec3 normal = vec3(0.0, 1.0, 0.0);
     vec3 worldNormal = normalize(mat3(modelMatrix[0].xyz, modelMatrix[1].xyz, modelMatrix[2].xyz) * normal);
     vec3 viewNormal = normalize(normalMatrix * normal);
-
-    // Grass color
-    vec3 uGrassDefaultColor = vec3(0.52, 0.65, 0.26);
-    vec3 uGrassShadedColor = vec3(0.52 / 1.3, 0.65 / 1.3, 0.26 / 1.3);
-    vec3 lowColor = mix(uGrassShadedColor, uGrassDefaultColor, 1.0 - scale); // Match the terrain
-    vec3 color = mix(lowColor, uGrassDefaultColor, tipness);
-
-    // Sun shade
-    float sunShade = getSunShade(normal);
-    color = getSunShadeColor(color, sunShade);
-
-    // Sun reflection
     float sunReflection = getSunReflection(viewDirection, worldNormal, viewNormal);
     color = getSunReflectionColor(color, sunReflection);
 
