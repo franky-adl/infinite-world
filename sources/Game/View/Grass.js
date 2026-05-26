@@ -24,8 +24,9 @@ export default class Grass {
         this.fragmentSize = this.size / this.details;
         this.bladeWidthRatio = 0.8;
         this.bladeHeightRatio = 4;
-        this.bladeHeightRandomness = 0.5;
+        this.bladeHeightRandomness = 0.7;
         this.positionRandomness = 0.5;
+        this.curveRandomness = 0.2;
         this.noiseTexture = this.noises.create(128, 128);
 
         this.setGeometry();
@@ -68,6 +69,13 @@ export default class Grass {
                 this.bladeHeightRandomness +
                 Math.random() * this.bladeHeightRandomness);
 
+        // Quadratic Bézier curve offset: offset(tipness) = curve * tipness²
+        // Base is anchored at x=0, tip drifts by `curve` — left or right randomly.
+        const curve =
+            (Math.random() - 0.5) * 2 * bladeHeight * this.curveRandomness;
+        const curveOffset05 = curve * 0.5 * 0.5; // tipness=0.50 → 0.25
+        const curveOffset075 = curve * 0.75 * 0.75; // tipness=0.75 → 0.5625
+
         const iStride = (iX * this.details + iZ) * vertexCount * 3;
         const iStripeT = (iX * this.details + iZ) * vertexCount;
         // following configuration assumes a 15-vertex blade
@@ -77,7 +85,7 @@ export default class Grass {
         positions[iStride + 2] = 0;
         tipness[iStripeT] = 0;
 
-        positions[iStride + 3] = -bladeHalfWidth * 0.9;
+        positions[iStride + 3] = -bladeHalfWidth * 0.9 + curveOffset05;
         positions[iStride + 4] = bladeHeight * 0.5;
         positions[iStride + 5] = 0;
         tipness[iStripeT + 1] = 0.5;
@@ -93,61 +101,61 @@ export default class Grass {
         positions[iStride + 11] = 0;
         tipness[iStripeT + 3] = 0;
 
-        positions[iStride + 12] = -bladeHalfWidth * 0.9;
+        positions[iStride + 12] = -bladeHalfWidth * 0.9 + curveOffset05;
         positions[iStride + 13] = bladeHeight * 0.5;
         positions[iStride + 14] = 0;
         tipness[iStripeT + 4] = 0.5;
 
-        positions[iStride + 15] = bladeHalfWidth * 0.9;
+        positions[iStride + 15] = bladeHalfWidth * 0.9 + curveOffset05;
         positions[iStride + 16] = bladeHeight * 0.5;
         positions[iStride + 17] = 0;
         tipness[iStripeT + 5] = 0.5;
 
         // middle - left triangle
-        positions[iStride + 18] = -bladeHalfWidth * 0.9;
+        positions[iStride + 18] = -bladeHalfWidth * 0.9 + curveOffset05;
         positions[iStride + 19] = bladeHeight * 0.5;
         positions[iStride + 20] = 0;
         tipness[iStripeT + 6] = 0.5;
 
-        positions[iStride + 21] = -bladeHalfWidth * 0.6;
+        positions[iStride + 21] = -bladeHalfWidth * 0.6 + curveOffset075;
         positions[iStride + 22] = bladeHeight * 0.75;
         positions[iStride + 23] = 0;
         tipness[iStripeT + 7] = 0.75;
 
-        positions[iStride + 24] = bladeHalfWidth * 0.9;
+        positions[iStride + 24] = bladeHalfWidth * 0.9 + curveOffset05;
         positions[iStride + 25] = bladeHeight * 0.5;
         positions[iStride + 26] = 0;
         tipness[iStripeT + 8] = 0.5;
 
         // middle - right triangle
-        positions[iStride + 27] = bladeHalfWidth * 0.9;
+        positions[iStride + 27] = bladeHalfWidth * 0.9 + curveOffset05;
         positions[iStride + 28] = bladeHeight * 0.5;
         positions[iStride + 29] = 0;
         tipness[iStripeT + 9] = 0.5;
 
-        positions[iStride + 30] = -bladeHalfWidth * 0.6;
+        positions[iStride + 30] = -bladeHalfWidth * 0.6 + curveOffset075;
         positions[iStride + 31] = bladeHeight * 0.75;
         positions[iStride + 32] = 0;
         tipness[iStripeT + 10] = 0.75;
 
-        positions[iStride + 33] = bladeHalfWidth * 0.6;
+        positions[iStride + 33] = bladeHalfWidth * 0.6 + curveOffset075;
         positions[iStride + 34] = bladeHeight * 0.75;
         positions[iStride + 35] = 0;
         tipness[iStripeT + 11] = 0.75;
 
         // top triangle
-        positions[iStride + 36] = bladeHalfWidth * 0.6;
+        positions[iStride + 36] = bladeHalfWidth * 0.6 + curveOffset075;
         positions[iStride + 37] = bladeHeight * 0.75;
         positions[iStride + 38] = 0;
         tipness[iStripeT + 12] = 0.75;
 
-        positions[iStride + 39] = -bladeHalfWidth * 0.6;
+        positions[iStride + 39] = -bladeHalfWidth * 0.6 + curveOffset075;
         positions[iStride + 40] = bladeHeight * 0.75;
         positions[iStride + 41] = 0;
         tipness[iStripeT + 13] = 0.75;
 
         // 15th vertex which is the tip of blade
-        positions[iStride + 42] = 0;
+        positions[iStride + 42] = curve; // tipness=1 → offset = curve * 1²
         positions[iStride + 43] = bladeHeight;
         positions[iStride + 44] = 0;
         tipness[iStripeT + 14] = 1;
