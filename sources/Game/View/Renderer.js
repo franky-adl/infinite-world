@@ -1,49 +1,46 @@
-import * as THREE from 'three'
+import * as THREE from "three";
 
-import Game from '@/Game.js'
-import View from '@/View/View.js'
-import Debug from '@/Debug/Debug.js'
-import State from '@/State/State.js'
+import Game from "@/Game.js";
+import View from "@/View/View.js";
+import Debug from "@/Debug/Debug.js";
+import State from "@/State/State.js";
 
-export default class Renderer
-{
-    constructor(_options = {})
-    {
-        this.game = Game.getInstance()
-        this.view = View.getInstance()
-        this.state = State.getInstance()
-        this.debug = Debug.getInstance()
+export default class Renderer {
+    constructor(_options = {}) {
+        this.game = Game.getInstance();
+        this.view = View.getInstance();
+        this.state = State.getInstance();
+        this.debug = Debug.getInstance();
 
-        this.scene = this.view.scene
-        this.domElement = this.game.domElement
-        this.viewport = this.state.viewport
-        this.time = this.state.time
-        this.camera = this.view.camera
+        this.scene = this.view.scene;
+        this.domElement = this.game.domElement;
+        this.viewport = this.state.viewport;
+        this.time = this.state.time;
+        this.camera = this.view.camera;
 
-        this.setInstance()
+        this.setInstance();
     }
 
-    setInstance()
-    {
-        this.clearColor = '#222222'
+    setInstance() {
+        this.clearColor = "#222222";
 
         // Renderer
         this.instance = new THREE.WebGLRenderer({
             alpha: false,
-            antialias: true
-        })
-        
-        this.instance.sortObjects = false
-        this.instance.domElement.style.position = 'absolute'
-        this.instance.domElement.style.top = 0
-        this.instance.domElement.style.left = 0
-        this.instance.domElement.style.width = '100%'
-        this.instance.domElement.style.height = '100%'
+            antialias: true,
+        });
+
+        this.instance.sortObjects = false;
+        this.instance.domElement.style.position = "absolute";
+        this.instance.domElement.style.top = 0;
+        this.instance.domElement.style.left = 0;
+        this.instance.domElement.style.width = "100%";
+        this.instance.domElement.style.height = "100%";
 
         // this.instance.setClearColor(0x414141, 1)
-        this.instance.setClearColor(this.clearColor, 1)
-        this.instance.setSize(this.viewport.width, this.viewport.height)
-        this.instance.setPixelRatio(this.viewport.clampedPixelRatio)
+        this.instance.setClearColor(this.clearColor, 1);
+        this.instance.setSize(this.viewport.width, this.viewport.height);
+        this.instance.setPixelRatio(this.viewport.clampedPixelRatio);
 
         // this.instance.physicallyCorrectLights = true
         // this.instance.gammaOutPut = true
@@ -54,37 +51,24 @@ export default class Renderer
         // this.instance.toneMapping = THREE.ReinhardToneMapping
         // this.instance.toneMappingExposure = 1.3
 
-        this.context = this.instance.getContext()
-
-        // Add stats panel
-        if(this.debug.stats)
-        {
-            this.debug.stats.setRenderPanel(this.context)
-        }
+        this.context = this.instance.getContext();
     }
 
-    resize()
-    {
+    resize() {
         // Instance
-        this.instance.setSize(this.viewport.width, this.viewport.height)
-        this.instance.setPixelRatio(this.viewport.clampedPixelRatio)
+        this.instance.setSize(this.viewport.width, this.viewport.height);
+        this.instance.setPixelRatio(this.viewport.clampedPixelRatio);
     }
 
-    update()
-    {
-        if(this.debug.stats)
-            this.debug.stats.beforeRender()
+    update() {
+        this.instance.render(this.scene, this.camera.instance);
 
-        this.instance.render(this.scene, this.camera.instance)
-
-        if(this.debug.stats)
-            this.debug.stats.afterRender()
+        if (this.debug.stats) this.debug.stats.update();
     }
 
-    destroy()
-    {
-        this.instance.renderLists.dispose()
-        this.instance.dispose()
-        this.renderTarget.dispose()
+    destroy() {
+        this.instance.renderLists.dispose();
+        this.instance.dispose();
+        this.renderTarget.dispose();
     }
 }
