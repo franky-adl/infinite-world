@@ -150,11 +150,53 @@ import Terrain from "./Terrain.js";
  *
  * SEED DETERMINISM
  * ----------------
- * All randomness in this class is seeded:
- *   this.seed = game.seed + 'b'
- * The `iterationsOffsets` array — random (x, z) translations applied per octave
- * to break up the obvious grid structure of the noise — is generated once from
- * this seed so the world is always identical for a given `game.seed`.
+ * All randomness in this class is deterministic and flows from a single string
+ * defined in Game.js:
+ *
+ *   // Game.js
+ *   this.seed = 'p'           // ← change this string to generate a new world
+ *
+ * To change the world, edit that one line. Any non-empty string is valid — the
+ * resulting world will be completely different for every distinct seed value.
+ *
+ * Terrains derives its own namespace from the global seed by appending 'b':
+ *
+ *   this.seed = this.game.seed + 'b'   // → 'pb'
+ *
+ * The 'b' suffix acts as a namespace. If other subsystems (e.g. grass placement,
+ * item scattering) were also seeded from `game.seed`, appending a unique suffix
+ * to each keeps their random streams independent even though they share the same
+ * root string.
+ *
+ * The `seedrandom` package (npm: seedrandom) turns that string into a
+ * deterministic pseudo-random number generator (PRNG). The PRNG is a drop-in
+ * replacement for Math.random() that always produces the same sequence of
+ * floating-point values in [0, 1) for the same seed:
+ *
+ *   this.random = new seedrandom('pb')
+ *   this.random()  // → always the same first float, e.g. 0.7213…
+ *   this.random()  // → always the same second float, e.g. 0.1047…
+ *   // …and so on, indefinitely
+ *
+ * Here `this.random` is called exactly `maxIterations` times (once per fBm
+ * octave, twice — for x and z) to build `iterationsOffsets`:
+ *
+ *   for (let i = 0; i < this.maxIterations; i++)
+ *       this.iterationsOffsets.push([
+ *           (this.random() - 0.5) * 200000,   // x offset, ±100 000 world units
+ *           (this.random() - 0.5) * 200000,   // z offset, ±100 000 world units
+ *       ])
+ *
+ * These large offsets are passed to the worker and applied per octave inside the
+ * fBm loop so that each octave samples a completely different region of the
+ * underlying noise field. Without them, every octave would stack on top of the
+ * same spatial pattern and produce an obviously repetitive, grid-aligned result.
+ *
+ * The seed string is also sent directly to the worker as `event.data.seed`,
+ * where `new SimplexNoise(seed)` uses it to shuffle the noise permutation table.
+ * This means the actual 2D noise values are deterministic too — the same world
+ * tile at the same (x, z) coordinate will always produce the same elevations for
+ * a given seed, regardless of the order in which tiles are requested.
  *
  *
  * RECREATING TERRAIN (debug / parameter tweaks)
@@ -175,15 +217,15 @@ export default class Terrains {
         this.state = State.getInstance();
         this.debug = Debug.getInstance();
 
-        this.seed = this.game.seed + "b";
+        this.seed = this.game.seed + "bx";
         this.random = new seedrandom(this.seed);
         this.subdivisions = 80;
         this.lacunarity = 2.05;
         this.persistence = 0.45;
-        this.maxIterations = 6;
+        this.maxIterations = 4;
         this.baseFrequency = 0.003;
-        this.baseAmplitude = 180;
-        this.power = 2;
+        this.baseAmplitude = 30;
+        this.power = 1;
         this.elevationOffset = 1;
 
         this.segments = this.subdivisions + 1;

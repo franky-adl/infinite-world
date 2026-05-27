@@ -183,8 +183,8 @@ export default class Chunks {
     constructor() {
         this.state = State.getInstance();
 
-        this.minSize = 128;
-        this.maxDepth = 3;
+        this.minSize = 256;
+        this.maxDepth = 2;
         this.maxSize = this.minSize * Math.pow(2, this.maxDepth);
         this.splitRatioPerSize = 1.3;
         this.lastId = 0;

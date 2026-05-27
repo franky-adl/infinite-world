@@ -16,7 +16,8 @@ export default class Grass {
         this.noises = this.view.noises;
 
         // The number of grass blades per row/column in the grass mesh.
-        this.details = 200 * 2;
+        // Adjust this proportionally to the size below as 'fragmentSize' is size divided by details
+        this.details = 200 * 4;
         // The size of the grass mesh.
         this.size = this.state.chunks.minSize * 1;
         this.count = this.details * this.details;
