@@ -6,7 +6,8 @@ uniform mat4 uCameraWorldMatrix;
 
 varying vec2 vUv;
 
-#define MAX_STEPS         100
+#define MAX_STEPS         200
+#define MIN_STEPS         1
 #define CLOUD_BOTTOM      100.0
 #define CLOUD_TOP         1000.0
 #define CLOUD_THICKNESS   (CLOUD_TOP - CLOUD_BOTTOM)
@@ -14,6 +15,11 @@ varying vec2 vUv;
 #define CLOUD_SCALE       2000.0
 #define ABSORPTION        0.05   // controls how quickly optical depth saturates to white
 #define CLOUD_SPEED       20.  // world-units per millisecond scrolled in x
+#define M_THRES           0.01  // ray y-threshold: below this blends fully into sky, raymarching skipped
+#define THRES_OFFSET      0.1   // range over which clouds fade into sky near horizon
+#define SKY_BLUE          vec3(0.2, 0.2, 0.8)
+#define CLOUD_WHITE       vec3(1.0, 1.0, 1.0)
+#define FOG_WHITE         vec3(0.92, 0.9, 0.96)
 
 void main()
 {
@@ -28,21 +34,14 @@ void main()
     vec3 rayDir    = normalize((uCameraWorldMatrix * vec4(viewPos.xyz, 0.0)).xyz);
     vec3 rayOrigin = uCameraPosition;
 
-    // This threshold is where the clouds blends completely with the skyColor, and raymarching stops from then on.
-    float mThres = 0.01;
-    // This offset is where the cloud starts to blend with the skyColor
-    float thresOffset = 0.1;
-    vec3 skyblue            = vec3(0.2, 0.2, 0.8);
-    vec3 cloudwhite         = vec3(1., 1., 1.);
-    vec3 fogWhite = vec3(0.92, 0.9, 0.96);
-    vec3 skyColor = mix(fogWhite, skyblue, max(smoothstep(0., 0.4, rayDir.y), 0.)); // simple gradient sky based on ray direction
-    vec3 cloudColor = mix(skyColor, cloudwhite, smoothstep(mThres, mThres + thresOffset, rayDir.y)); // clouds merge with skycolor(fog effect) near the horizon
+    vec3 skyColor   = mix(FOG_WHITE, SKY_BLUE, max(smoothstep(0., 0.4, rayDir.y), 0.)); // simple gradient sky based on ray direction
+    vec3 cloudColor = mix(skyColor, CLOUD_WHITE, smoothstep(M_THRES, M_THRES + THRES_OFFSET, rayDir.y)); // clouds merge with skycolor(fog effect) near the horizon
     
     // --- Intersect ray with horizontal cloud-layer slab ---
     float t_enter, t_exit;
 
     // adjust the threshold if needed
-    if (rayDir.y < mThres)
+    if (rayDir.y < M_THRES)
     {
         gl_FragColor = vec4(skyColor, 1.0);
         return;
@@ -66,10 +65,12 @@ void main()
     }
 
     // --- Raymarch through the cloud slab (max MAX_STEPS iterations) ---
-    float stepSize    = (t_exit - t_enter) / float(MAX_STEPS);
+    // Fewer steps near the horizon: distant clouds need less detail and are cheaper to approximate.
+    int   steps       = max(MIN_STEPS, int(float(MAX_STEPS) * smoothstep(M_THRES, 0.45, rayDir.y)));
+    float stepSize    = (t_exit - t_enter) / float(steps);
     float opticalDepth = 0.0;
 
-    for (int i = 0; i < MAX_STEPS; i++)
+    for (int i = 0; i < steps; i++)
     {
         vec3 samplePos = rayOrigin + (t_enter + float(i) * stepSize) * rayDir;
 
