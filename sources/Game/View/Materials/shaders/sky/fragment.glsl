@@ -6,15 +6,16 @@ uniform mat4 uCameraWorldMatrix;
 
 varying vec2 vUv;
 
-#define MAX_STEPS         200
-#define MIN_STEPS         1
+#define MAX_STEPS         150
+#define MIN_STEPS         8
+#define MAX_DISTANCE      500.0
 #define CLOUD_BOTTOM      100.0
-#define CLOUD_TOP         1000.0
+#define CLOUD_TOP         250.0
 #define CLOUD_THICKNESS   (CLOUD_TOP - CLOUD_BOTTOM)
-#define DENSITY_THRESHOLD 0.7
-#define CLOUD_SCALE       2000.0
-#define ABSORPTION        0.05   // controls how quickly optical depth saturates to white
-#define CLOUD_SPEED       20.  // world-units per millisecond scrolled in x
+#define DENSITY_THRESHOLD 0.1
+#define CLOUD_SCALE       500.0
+#define ABSORPTION        0.02   // controls how quickly optical depth saturates to white
+#define CLOUD_SPEED       20.0  // world-units per millisecond scrolled in x
 #define M_THRES           0.01  // ray y-threshold: below this blends fully into sky, raymarching skipped
 #define THRES_OFFSET      0.1   // range over which clouds fade into sky near horizon
 #define SKY_BLUE          vec3(0.2, 0.2, 0.8)
@@ -23,6 +24,12 @@ varying vec2 vUv;
 
 void main()
 {
+    // // Testing the 3D texture;
+    // float noiseT = texture(uNoise3D, vec3(vUv.x, 0.5, vUv.y)).b;
+    // // noiseT = remap(noiseT, 0.85, 1., 0., 1.);
+    // gl_FragColor = vec4(vec3(noiseT), 1.0);
+    // return;
+
     // --- Reconstruct world-space ray direction from screen UV ---
     vec2 ndc     = vUv * 2.0 - 1.0;
     // Transforming from NDC back to view space point at the near plane (z = -1), 
@@ -66,24 +73,29 @@ void main()
 
     // --- Raymarch through the cloud slab (max MAX_STEPS iterations) ---
     // Fewer steps near the horizon: distant clouds need less detail and are cheaper to approximate.
-    int   steps       = max(MIN_STEPS, int(float(MAX_STEPS) * smoothstep(M_THRES, 0.45, rayDir.y)));
+    int   steps       = max(MIN_STEPS, int(float(MAX_STEPS) * smoothstep(M_THRES, 0.2, rayDir.y)));
     float stepSize    = (t_exit - t_enter) / float(steps);
     float opticalDepth = 0.0;
+    float accDist = 0.0;
 
     for (int i = 0; i < steps; i++)
     {
-        vec3 samplePos = rayOrigin + (t_enter + float(i) * stepSize) * rayDir;
+        accDist += stepSize;
+        if (accDist > MAX_DISTANCE) break; // early break for perf optimisation
 
+        vec3 samplePos = rayOrigin + (t_enter + float(i) * stepSize) * rayDir;
         // Texture convention from Noises.js: texture(uNoise3D, vec3(x, z, y))
         // x and z tile via RepeatWrapping; y is normalised to [0, 1] within the slab
         float normY   = (samplePos.y - CLOUD_BOTTOM) / CLOUD_THICKNESS;
         float scroll  = uTime * CLOUD_SPEED;
-        vec3  uvw     = vec3((samplePos.x + scroll) / CLOUD_SCALE, samplePos.z / CLOUD_SCALE, normY);
-        float density = texture(uNoise3D, uvw).r;
+        vec3  uvw     = vec3((samplePos.x + scroll) / CLOUD_SCALE, normY, (samplePos.z + scroll * 0.3) / CLOUD_SCALE);
+        float coverage = texture(uNoise3D, uvw / 2.).b;
+        if (coverage < 0.001) continue;
+        float density = texture(uNoise3D, uvw).a;
 
         if (density > DENSITY_THRESHOLD)
         {
-            opticalDepth += stepSize;
+            opticalDepth += coverage * density * stepSize;
         }
     }
 
