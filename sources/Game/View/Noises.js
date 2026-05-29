@@ -113,9 +113,9 @@ export default class Noises {
     }
 
     /**
-     * Bake a 128 × 32 × 128 Data3DTexture using 3-D periodic Perlin noise.
+     * Bake a 128 × 128 × 128 Data3DTexture using 3-D periodic Perlin noise.
      *
-     * The volume is built by rendering one XZ slice per Y level (32 passes).
+     * The volume is built by rendering one XZ slice per Y level (128 passes).
      * Each 128×128 render is read back to the CPU and packed into the final
      * Uint8Array before being uploaded as a single Data3DTexture.
      *
@@ -127,10 +127,10 @@ export default class Noises {
      *
      * @param {number} xSize   - Texel count along world X (default 128)
      * @param {number} zSize   - Texel count along world Z (default 128)
-     * @param {number} yLevels - Number of Y slices / depth layers (default 32)
+     * @param {number} yLevels - Number of Y slices / depth layers (default 128)
      * @returns {THREE.Data3DTexture}
      */
-    create3D(xSize = 128, zSize = 128, yLevels = 32) {
+    create3D(xSize = 128, zSize = 128, yLevels = 128) {
         // --- temporary scene: fullscreen quad + new material per call ---
         const scene = new THREE.Scene();
         const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
