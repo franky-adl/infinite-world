@@ -79,94 +79,56 @@ export default class Grass {
 
         const iStride = (iX * this.details + iZ) * vertexCount * 3;
         const iStripeT = (iX * this.details + iZ) * vertexCount;
-        // following configuration assumes a 15-vertex blade
-        // bottom - left triangle
+
+        // U0: Bottom-left
         positions[iStride] = -bladeHalfWidth;
         positions[iStride + 1] = 0;
         positions[iStride + 2] = 0;
         tipness[iStripeT] = 0;
 
-        positions[iStride + 3] = -bladeHalfWidth * 0.9 + curveOffset05;
-        positions[iStride + 4] = bladeHeight * 0.5;
+        // U1: Bottom-right
+        positions[iStride + 3] = bladeHalfWidth;
+        positions[iStride + 4] = 0;
         positions[iStride + 5] = 0;
-        tipness[iStripeT + 1] = 0.5;
+        tipness[iStripeT + 1] = 0;
 
-        positions[iStride + 6] = bladeHalfWidth;
-        positions[iStride + 7] = 0;
+        // U2: Mid-left 0.5
+        positions[iStride + 6] = -bladeHalfWidth * 0.9 + curveOffset05;
+        positions[iStride + 7] = bladeHeight * 0.5;
         positions[iStride + 8] = 0;
-        tipness[iStripeT + 2] = 0;
+        tipness[iStripeT + 2] = 0.5;
 
-        // bottom - right triangle
-        positions[iStride + 9] = bladeHalfWidth;
-        positions[iStride + 10] = 0;
+        // U3: Mid-right 0.5
+        positions[iStride + 9] = bladeHalfWidth * 0.9 + curveOffset05;
+        positions[iStride + 10] = bladeHeight * 0.5;
         positions[iStride + 11] = 0;
-        tipness[iStripeT + 3] = 0;
+        tipness[iStripeT + 3] = 0.5;
 
-        positions[iStride + 12] = -bladeHalfWidth * 0.9 + curveOffset05;
-        positions[iStride + 13] = bladeHeight * 0.5;
+        // U4: Top-left 0.75
+        positions[iStride + 12] = -bladeHalfWidth * 0.6 + curveOffset075;
+        positions[iStride + 13] = bladeHeight * 0.75;
         positions[iStride + 14] = 0;
-        tipness[iStripeT + 4] = 0.5;
+        tipness[iStripeT + 4] = 0.75;
 
-        positions[iStride + 15] = bladeHalfWidth * 0.9 + curveOffset05;
-        positions[iStride + 16] = bladeHeight * 0.5;
+        // U5: Top-right 0.75
+        positions[iStride + 15] = bladeHalfWidth * 0.6 + curveOffset075;
+        positions[iStride + 16] = bladeHeight * 0.75;
         positions[iStride + 17] = 0;
-        tipness[iStripeT + 5] = 0.5;
+        tipness[iStripeT + 5] = 0.75;
 
-        // middle - left triangle
-        positions[iStride + 18] = -bladeHalfWidth * 0.9 + curveOffset05;
-        positions[iStride + 19] = bladeHeight * 0.5;
+        // U6: Tip
+        positions[iStride + 18] = curve;
+        positions[iStride + 19] = bladeHeight;
         positions[iStride + 20] = 0;
-        tipness[iStripeT + 6] = 0.5;
-
-        positions[iStride + 21] = -bladeHalfWidth * 0.6 + curveOffset075;
-        positions[iStride + 22] = bladeHeight * 0.75;
-        positions[iStride + 23] = 0;
-        tipness[iStripeT + 7] = 0.75;
-
-        positions[iStride + 24] = bladeHalfWidth * 0.9 + curveOffset05;
-        positions[iStride + 25] = bladeHeight * 0.5;
-        positions[iStride + 26] = 0;
-        tipness[iStripeT + 8] = 0.5;
-
-        // middle - right triangle
-        positions[iStride + 27] = bladeHalfWidth * 0.9 + curveOffset05;
-        positions[iStride + 28] = bladeHeight * 0.5;
-        positions[iStride + 29] = 0;
-        tipness[iStripeT + 9] = 0.5;
-
-        positions[iStride + 30] = -bladeHalfWidth * 0.6 + curveOffset075;
-        positions[iStride + 31] = bladeHeight * 0.75;
-        positions[iStride + 32] = 0;
-        tipness[iStripeT + 10] = 0.75;
-
-        positions[iStride + 33] = bladeHalfWidth * 0.6 + curveOffset075;
-        positions[iStride + 34] = bladeHeight * 0.75;
-        positions[iStride + 35] = 0;
-        tipness[iStripeT + 11] = 0.75;
-
-        // top triangle
-        positions[iStride + 36] = bladeHalfWidth * 0.6 + curveOffset075;
-        positions[iStride + 37] = bladeHeight * 0.75;
-        positions[iStride + 38] = 0;
-        tipness[iStripeT + 12] = 0.75;
-
-        positions[iStride + 39] = -bladeHalfWidth * 0.6 + curveOffset075;
-        positions[iStride + 40] = bladeHeight * 0.75;
-        positions[iStride + 41] = 0;
-        tipness[iStripeT + 13] = 0.75;
-
-        // 15th vertex which is the tip of blade
-        positions[iStride + 42] = curve; // tipness=1 → offset = curve * 1²
-        positions[iStride + 43] = bladeHeight;
-        positions[iStride + 44] = 0;
-        tipness[iStripeT + 14] = 1;
+        tipness[iStripeT + 6] = 1;
     }
 
     setGeometry() {
-        const bladeVertexCount = 15;
+        const bladeVertexCount = 7;
         const centers = new Float32Array(this.count * bladeVertexCount * 2);
         const positions = new Float32Array(this.count * bladeVertexCount * 3);
         const tipness = new Float32Array(this.count * bladeVertexCount);
+        const indices = new Uint32Array(this.count * 15);
 
         for (let iX = 0; iX < this.details; iX++) {
             const fragmentX =
@@ -197,10 +159,39 @@ export default class Grass {
                     iX,
                     iZ,
                 );
+
+                const iV = (iX * this.details + iZ) * bladeVertexCount;
+                const iI = (iX * this.details + iZ) * 15;
+
+                // T1: U0, U2, U1
+                indices[iI] = iV + 0;
+                indices[iI + 1] = iV + 2;
+                indices[iI + 2] = iV + 1;
+
+                // T2: U1, U2, U3
+                indices[iI + 3] = iV + 1;
+                indices[iI + 4] = iV + 2;
+                indices[iI + 5] = iV + 3;
+
+                // T3: U2, U4, U3
+                indices[iI + 6] = iV + 2;
+                indices[iI + 7] = iV + 4;
+                indices[iI + 8] = iV + 3;
+
+                // T4: U3, U4, U5
+                indices[iI + 9] = iV + 3;
+                indices[iI + 10] = iV + 4;
+                indices[iI + 11] = iV + 5;
+
+                // T5: U5, U4, U6
+                indices[iI + 12] = iV + 5;
+                indices[iI + 13] = iV + 4;
+                indices[iI + 14] = iV + 6;
             }
         }
 
         this.geometry = new THREE.BufferGeometry();
+        this.geometry.setIndex(new THREE.BufferAttribute(indices, 1));
         this.geometry.setAttribute(
             "center",
             new THREE.Float32BufferAttribute(centers, 2),
