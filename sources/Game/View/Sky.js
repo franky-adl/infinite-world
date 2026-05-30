@@ -54,7 +54,6 @@ export default class Sky {
         this.setCustomRender();
         this.setBackground();
         this.setSky();
-        // this.setSun();
         // this.setStars();
         this.setDebug();
     }
@@ -124,16 +123,6 @@ export default class Sky {
         this.sky.mesh.material.side = THREE.BackSide;
         this.sky.mesh.material.depthWrite = false;
         this.customRender.scene.add(this.sky.mesh);
-    }
-
-    setSun() {
-        this.sun = {};
-        this.sun.distance = this.outerDistance - 50;
-
-        const geometry = new THREE.CircleGeometry(0.02 * this.sun.distance, 32);
-        const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        this.sun.mesh = new THREE.Mesh(geometry, material);
-        this.group.add(this.sun.mesh);
     }
 
     setStars() {
@@ -336,18 +325,6 @@ export default class Sky {
         this.sky.material.uniforms.uCameraWorldMatrix.value.copy(
             mainCamera.matrixWorld,
         );
-
-        // // Sun
-        // this.sun.mesh.position.set(
-        //     sunState.position.x * this.sun.distance,
-        //     sunState.position.y * this.sun.distance,
-        //     sunState.position.z * this.sun.distance,
-        // );
-        // this.sun.mesh.lookAt(
-        //     playerState.position.current[0],
-        //     playerState.position.current[1],
-        //     playerState.position.current[2],
-        // );
 
         // // Stars
         // this.stars.material.uniforms.uSunPosition.value.set(

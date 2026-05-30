@@ -3,12 +3,13 @@ uniform float uTime;
 uniform vec3 uCameraPosition;
 uniform float uDayCycleProgress;
 uniform vec3 uColorDawn;
+uniform vec3 uSunPosition;
 
 varying vec3 vWorldPosition;
 varying vec3 vColor;
 varying float vDawnIntensity;
 
-#define MAX_STEPS         150   // at least 120 steps to not see significant banding artifacts
+#define MAX_STEPS         140   // at least 120 steps to not see significant banding artifacts
 #define MIN_STEPS         8
 #define MAX_DISTANCE      500.0
 #define CLOUD_BOTTOM      100.0
@@ -26,24 +27,28 @@ varying float vDawnIntensity;
 #define THRES_OFFSET      0.12   // range over which clouds fade into sky near horizon
 #define CLOUD_WHITE       vec3(1.0, 1.0, 1.0)
 #define CLOUD_SHADOW      vec3(0.55, 0.57, 0.68)  // blue-grey colour for unlit cloud undersides
+#define SUN_COLOR         vec3(1.0, 0.97, 0.94)
 
 void main()
 {
-    // gl_FragColor = vec4(vColor, 1.0);
-    // return;
-
     // --- Reconstruct world-space ray direction from vertex position ---
     vec3 rayDir    = normalize(vWorldPosition);
     vec3 rayOrigin = uCameraPosition;
 
-    vec3 skyColor   = vColor;
+    // adding sun to sky color
+    float distanceToSun = distance(rayDir, uSunPosition);
+    float sunIntensity = smoothstep(0.025, 0.02, distanceToSun); // simple radial sun glow, also used to modulate dawn color
+    float horizonFactor = smoothstep(M_THRES, M_THRES + THRES_OFFSET, rayDir.y);
+    vec3 skyColor   = mix(vColor, SUN_COLOR, sunIntensity * horizonFactor);
+    
+    // cloud colors (dawn color introduced for clouds as well, modulated by sun intensity so it only affects clouds near the sun)
     float mixFactor = abs(uDayCycleProgress - 0.5) * 1.5 + 0.25;
     vec3 mixedCloud = mix(CLOUD_WHITE, uColorDawn, vDawnIntensity * 0.3);
     vec3 cloudWhite = mix(skyColor, mixedCloud, mixFactor);
     vec3 mixedShadow = mix(CLOUD_SHADOW, uColorDawn * 1.2, vDawnIntensity);
     vec3 cloudShadow = mix(skyColor, mixedShadow, mixFactor);
-    vec3 cloudColor = mix(skyColor, cloudWhite, smoothstep(M_THRES, M_THRES + THRES_OFFSET, rayDir.y)); // clouds merge with skycolor(fog effect) near the horizon
-    vec3 cloudShade = mix(skyColor, cloudShadow, smoothstep(M_THRES, M_THRES + THRES_OFFSET, rayDir.y)); // cloud shadows also fade into sky near horizon
+    vec3 cloudColor = mix(skyColor, cloudWhite, horizonFactor); // clouds merge with skycolor(fog effect) near the horizon
+    vec3 cloudShade = mix(skyColor, cloudShadow, horizonFactor); // cloud shadows also fade into sky near horizon
     
     // --- Intersect ray with horizontal cloud-layer slab ---
     float t_enter, t_exit;
