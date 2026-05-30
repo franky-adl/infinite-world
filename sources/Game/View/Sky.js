@@ -98,14 +98,31 @@ export default class Sky {
 
     setSky() {
         this.sky = {};
+        this.sky.widthSegments = 128;
+        this.sky.heightSegments = 64;
         this.sky.material = new SkyMaterial();
         // create the 3D noise texture
         const noise3D = this.view.noises.create3D();
         this.sky.material.uniforms.uNoise3D.value = noise3D;
 
-        this.sky.geometry = new THREE.PlaneGeometry(2, 2);
+        this.sky.material.uniforms.uColorDayCycleLow.value.set("#f0fff9");
+        this.sky.material.uniforms.uColorDayCycleHigh.value.set("#2e89ff");
+        this.sky.material.uniforms.uColorNightLow.value.set("#004794");
+        this.sky.material.uniforms.uColorNightHigh.value.set("#001624");
+        this.sky.material.uniforms.uColorSun.value.set("#ff531a");
+        this.sky.material.uniforms.uColorDawn.value.set("#ff5000");
+        this.sky.material.uniforms.uDayCycleProgress.value = 0;
+        this.sky.material.side = THREE.BackSide;
+
+        this.sky.geometry = new THREE.SphereGeometry(
+            10,
+            this.sky.widthSegments,
+            this.sky.heightSegments,
+        );
 
         this.sky.mesh = new THREE.Mesh(this.sky.geometry, this.sky.material);
+        this.sky.mesh.material.side = THREE.BackSide;
+        this.sky.mesh.material.depthWrite = false;
         this.customRender.scene.add(this.sky.mesh);
     }
 
@@ -199,6 +216,66 @@ export default class Sky {
     setDebug() {
         if (!this.debug.active) return;
 
+        // Sky
+        const skyMaterialFolder = this.debug.ui.getFolder(
+            "view/sky/sky/material",
+        );
+
+        skyMaterialFolder
+            .add(this.sky.material.uniforms.uAtmosphereElevation, "value")
+            .min(0)
+            .max(5)
+            .step(0.01)
+            .name("uAtmosphereElevation");
+        skyMaterialFolder
+            .add(this.sky.material.uniforms.uAtmospherePower, "value")
+            .min(0)
+            .max(20)
+            .step(1)
+            .name("uAtmospherePower");
+        skyMaterialFolder
+            .addColor(this.sky.material.uniforms.uColorDayCycleLow, "value")
+            .name("uColorDayCycleLow");
+        skyMaterialFolder
+            .addColor(this.sky.material.uniforms.uColorDayCycleHigh, "value")
+            .name("uColorDayCycleHigh");
+        skyMaterialFolder
+            .addColor(this.sky.material.uniforms.uColorNightLow, "value")
+            .name("uColorNightLow");
+        skyMaterialFolder
+            .addColor(this.sky.material.uniforms.uColorNightHigh, "value")
+            .name("uColorNightHigh");
+        skyMaterialFolder
+            .add(this.sky.material.uniforms.uDawnAngleAmplitude, "value")
+            .min(0)
+            .max(1)
+            .step(0.001)
+            .name("uDawnAngleAmplitude");
+        skyMaterialFolder
+            .add(this.sky.material.uniforms.uDawnElevationAmplitude, "value")
+            .min(0)
+            .max(1)
+            .step(0.01)
+            .name("uDawnElevationAmplitude");
+        skyMaterialFolder
+            .addColor(this.sky.material.uniforms.uColorDawn, "value")
+            .name("uColorDawn");
+        skyMaterialFolder
+            .add(this.sky.material.uniforms.uSunAmplitude, "value")
+            .min(0)
+            .max(3)
+            .step(0.01)
+            .name("uSunAmplitude");
+        skyMaterialFolder
+            .add(this.sky.material.uniforms.uSunMultiplier, "value")
+            .min(0)
+            .max(1)
+            .step(0.01)
+            .name("uSunMultiplier");
+        skyMaterialFolder
+            .addColor(this.sky.material.uniforms.uColorSun, "value")
+            .name("uColorSun");
+
         // // Stars
         // const starsFolder = this.debug.ui.getFolder("view/sky/stars");
 
@@ -239,6 +316,12 @@ export default class Sky {
 
         // Sky
         this.sky.material.uniforms.uTime.value += this.state.time.delta;
+        this.sky.material.uniforms.uSunPosition.value.set(
+            sunState.position.x,
+            sunState.position.y,
+            sunState.position.z,
+        );
+        this.sky.material.uniforms.uDayCycleProgress.value = dayState.progress;
 
         // Update camera uniforms for raymarching
         const mainCamera = this.view.camera.instance;

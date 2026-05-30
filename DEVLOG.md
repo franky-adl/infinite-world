@@ -6,6 +6,11 @@
 - Initially I sampled both cloud coverage and density, generated from different noises. The coverage helps control the positions of the clouds, while density controls more of the cloud shape. Now I simply multiplied the 2 together to get the final density, saving one extra texture sample in the raymarching loop.
 - Previously there are some repeating small white ellipses at the i=0 layer after I implemented the upward light march, spent quite a bit of time couldn't figure out why exactly. I thought it was because there were coincidentally some empty columns in the 3D noise texture, causing the vertical transmittance to be 1 and thus resulting in those very noticeable bright spots. Luckily after tweaking with the coverage noise a bit, the artifacts were gone.
 
+### (Re)adding day cycle colors to the sky + clouds
+
+- I was using a full screen quad to render the sky, but now I need to reintroduce the sky colors from Bruno's vertex shader, so I switched back to using a sphere, and turns out the ray direction calculation now is much simpler.
+- the vDawnIntensity calculated from the vertex shader is useful for mixing the cloud colors with the dawn color during sunrise/sunset.
+
 ### Useful References
 
 - SimonDev on "How Big Budget AAA Games Render Clouds" [https://www.youtube.com/watch?v=Qj_tK_mdRcA]
