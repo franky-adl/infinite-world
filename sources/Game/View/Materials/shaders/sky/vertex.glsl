@@ -23,6 +23,8 @@ varying vec3 vColor;
 varying float vDawnIntensity;
 varying vec3 vWorldPosition;
 
+#include ../partials/getDawnCycleIntensity.glsl;
+
 vec3 blendAdd(vec3 base, vec3 blend)
 {
 	return min(base + blend, vec3(1.0));
@@ -76,7 +78,7 @@ void main()
     float dawnElevationIntensity = 1.0 - min(1.0, (uv.y - 0.5) / uDawnElevationAmplitude);
 
     // Dawn day progress intensity
-    float dawnDayCycleIntensity = cos(uDayCycleProgress * 4.0 * M_PI + M_PI) * 0.5 + 0.5;
+    float dawnDayCycleIntensity = getDawnCycleIntensity();
 
     // Final dawn intensity and color
     float dawnIntensity = clamp(dawnAngleIntensity * dawnElevationIntensity * dawnDayCycleIntensity, 0.0, 1.0);

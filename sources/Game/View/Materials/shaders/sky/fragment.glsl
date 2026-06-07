@@ -37,7 +37,7 @@ void main()
 
     // adding sun to sky color
     float distanceToSun = distance(rayDir, uSunPosition);
-    float sunIntensity = smoothstep(0.025, 0.02, distanceToSun); // simple radial sun glow, also used to modulate dawn color
+    float sunIntensity = smoothstep(0.015, 0.008, distanceToSun); // simple radial sun glow, also used to modulate dawn color
     float horizonFactor = smoothstep(M_THRES, M_THRES + THRES_OFFSET, rayDir.y);
     vec3 skyColor   = mix(vColor, SUN_COLOR, sunIntensity * horizonFactor);
     

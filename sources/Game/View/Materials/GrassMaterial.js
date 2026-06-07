@@ -1,16 +1,15 @@
-import * as THREE from 'three'
+import * as THREE from "three";
 
-import vertexShader from './shaders/grass/vertex.glsl'
-import fragmentShader from './shaders/grass/fragment.glsl'
+import vertexShader from "./shaders/grass/vertex.glsl";
+import fragmentShader from "./shaders/grass/fragment.glsl";
 
-export default function GrassMaterial()
-{
+export default function GrassMaterial() {
     const material = new THREE.ShaderMaterial({
-        uniforms:
-        {
+        uniforms: {
             uTime: { value: null },
             uGrassDistance: { value: null },
             uPlayerPosition: { value: null },
+            uDayCycleProgress: { value: null },
             uTerrainSize: { value: null },
             uTerrainTextureSize: { value: null },
             uTerrainATexture: { value: null },
@@ -26,10 +25,11 @@ export default function GrassMaterial()
             uFresnelScale: { value: null },
             uFresnelPower: { value: null },
             uSunPosition: { value: null },
+            uDawnGrassColor: { value: null },
         },
         vertexShader: vertexShader,
-        fragmentShader: fragmentShader
-    })
+        fragmentShader: fragmentShader,
+    });
 
-    return material
+    return material;
 }

@@ -3,6 +3,7 @@
 uniform float uTime;
 uniform float uGrassDistance;
 uniform vec3 uPlayerPosition;
+uniform float uDayCycleProgress;
 uniform float uTerrainSize;
 uniform float uTerrainTextureSize;
 uniform sampler2D uTerrainATexture;
@@ -18,20 +19,29 @@ uniform float uFresnelOffset;
 uniform float uFresnelScale;
 uniform float uFresnelPower;
 uniform vec3 uSunPosition;
+uniform vec3 uDawnGrassColor;
 
 attribute vec2 center;
 attribute float tipness;
 
 varying vec3 vColor;
 
+#include ../partials/getDawnCycleIntensity.glsl;
 #include ../partials/inverseLerp.glsl
 #include ../partials/remap.glsl
 #include ../partials/getSunShade.glsl;
 #include ../partials/getSunShadeColor.glsl;
 #include ../partials/getSunReflection.glsl;
-#include ../partials/getSunReflectionColor.glsl;
 #include ../partials/getGrassAttenuation.glsl;
 #include ../partials/getRotatePivot2d.glsl;
+
+vec3 getSunReflectionColor(vec3 baseColor, float sunReflection, float tipness)
+{
+    vec3 white = vec3(1.0, 1.0, 1.0);
+    float dawnIntensity = getDawnCycleIntensity();
+    vec3 sunReflectionColor = mix(white, uDawnGrassColor, dawnIntensity);
+    return mix(baseColor, sunReflectionColor, clamp(sunReflection, 0.0, 1.0) * (tipness * 0.5 + 0.5));
+}
 
 void main()
 {
@@ -112,10 +122,10 @@ void main()
     // Sun reflection - lerps to white based on sun reflection and fresnel amount
     vec3 viewDirection = normalize(modelPosition.xyz - cameraPosition);
     // vec3 normal = vec3(0.0, 1.0, 0.0);
-    vec3 worldNormal = normalize(mat3(modelMatrix[0].xyz, modelMatrix[1].xyz, modelMatrix[2].xyz) * normal);
+    vec3 worldNormal = normalize(modelMatrix * vec4(normal, 0.0)).xyz;
     vec3 viewNormal = normalize(normalMatrix * normal);
     float sunReflection = getSunReflection(viewDirection, worldNormal, viewNormal);
-    color = getSunReflectionColor(color, sunReflection);
+    color = getSunReflectionColor(color, sunReflection, tipness);
 
     vColor = color;
     // vColor = vec3(slope);

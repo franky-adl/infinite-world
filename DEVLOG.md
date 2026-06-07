@@ -18,6 +18,13 @@
 - Looking further into how the 3D noise texture should be correctly sampled, I realized I've mixed up the one of the axis. Initially I thought the worldspace y-axis is the same as in the v in uvw of the texture space, but that was kinda wrong. There isn't a single correct answer in how you map the axes, but you need to know what you're doing to map them correctly for you.
 - So I treated the depth(W) axis in the 3D texture as the worldspace y-axis and renamed variables to make this clear, such that in the raymarching, I need to put the normalized y value in the w slot to correctly sample the texture. This way, the stretching issue is resolved and the clouds look normal again.
 
+### Adding more dramatic dawn colors to the grass and terrain
+
+- For a start, I introduced the dayProgress uniform to the grass and tweaked the getSunReflectionColor function to mix in more golden/dawny colors. But I recognized that it's relying too much of the sun reflection strength like the surface is shiny, but in reality the grass is more like a rough surface, so I should also see the golden colors even if my camera isn't facing the sun.
+- So I updated the getSunShadeColor function to also mix in the dawn colors, such that the grass+terrain get more of a red tint during dawn/dusk.
+- I also adjusted the fresnelScale to be higher during dawn, and by that I skipped the original uFresnelScale uniform. Could remove later if confirmed not needed.
+- Note that the sky colors now a bit too red/pink compared to the terrain, which I need to adjust later on. But I'm content with the terrain dawn colors for now.
+
 ### Useful References
 
 - SimonDev on "How Big Budget AAA Games Render Clouds" [https://www.youtube.com/watch?v=Qj_tK_mdRcA]

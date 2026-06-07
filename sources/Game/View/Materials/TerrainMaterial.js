@@ -1,13 +1,11 @@
-import * as THREE from 'three'
+import * as THREE from "three";
 
-import vertexShader from './shaders/terrain/vertex.glsl'
-import fragmentShader from './shaders/terrain/fragment.glsl'
+import vertexShader from "./shaders/terrain/vertex.glsl";
+import fragmentShader from "./shaders/terrain/fragment.glsl";
 
-export default function TerrainMaterial()
-{
+export default function TerrainMaterial() {
     const material = new THREE.ShaderMaterial({
-        uniforms:
-        {
+        uniforms: {
             uPlayerPosition: { value: null },
             uGradientTexture: { value: null },
             uLightnessSmoothness: { value: null },
@@ -17,11 +15,13 @@ export default function TerrainMaterial()
             uSunPosition: { value: null },
             uFogTexture: { value: null },
             uGrassDistance: { value: null },
-            uTexture: { value: null }
+            uTexture: { value: null },
+            uDayCycleProgress: { value: null },
+            uDawnGrassColor: { value: null },
         },
         vertexShader: vertexShader,
-        fragmentShader: fragmentShader
-    })
+        fragmentShader: fragmentShader,
+    });
 
-    return material
+    return material;
 }

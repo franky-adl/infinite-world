@@ -228,12 +228,17 @@ export default class Grass {
         this.material.uniforms.uTerrainDOffset.value = new THREE.Vector2();
         this.material.uniforms.uNoiseTexture.value = this.noiseTexture;
         this.material.uniforms.uFresnelOffset.value = 0;
-        this.material.uniforms.uFresnelScale.value = 0.5;
+        this.material.uniforms.uFresnelScale.value = 1.0;
         this.material.uniforms.uFresnelPower.value = 2;
         this.material.uniforms.uSunPosition.value = new THREE.Vector3(
             -0.5,
             -0.5,
             -0.5,
+        );
+        this.material.uniforms.uDawnGrassColor.value = new THREE.Color(
+            1.0,
+            0.6,
+            0.05,
         );
         // this.material.wireframe = true;
     }
@@ -246,6 +251,7 @@ export default class Grass {
 
     update() {
         const playerState = this.state.player;
+        const dayState = this.state.day;
         const playerPosition = playerState.position.current;
         const engineChunks = this.state.chunks;
         const sunState = this.state.sun;
@@ -256,6 +262,7 @@ export default class Grass {
             sunState.position.y,
             sunState.position.z,
         );
+        this.material.uniforms.uDayCycleProgress.value = dayState.progress;
 
         // The grass mesh always moves with the player
         this.mesh.position.set(playerPosition[0], 0, playerPosition[2]);

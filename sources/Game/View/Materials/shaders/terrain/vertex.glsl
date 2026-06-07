@@ -1,3 +1,5 @@
+#define M_PI 3.1415926535897932384626433832795
+
 uniform vec3 uPlayerPosition;
 uniform float uLightnessSmoothness;
 uniform float uFresnelOffset;
@@ -7,17 +9,27 @@ uniform vec3 uSunPosition;
 uniform float uGrassDistance;
 uniform sampler2D uTexture;
 uniform sampler2D uFogTexture;
+uniform float uDayCycleProgress;
+uniform vec3 uDawnGrassColor;
 
 varying vec3 vColor;
 
+#include ../partials/getDawnCycleIntensity.glsl;
 #include ../partials/inverseLerp.glsl
 #include ../partials/remap.glsl
 #include ../partials/getSunShade.glsl;
 #include ../partials/getSunShadeColor.glsl;
 #include ../partials/getSunReflection.glsl;
-#include ../partials/getSunReflectionColor.glsl;
 #include ../partials/getFogColor.glsl;
 #include ../partials/getGrassAttenuation.glsl;
+
+vec3 getSunReflectionColor(vec3 baseColor, float sunReflection)
+{
+    vec3 white = vec3(1.0, 1.0, 1.0);
+    float dawnIntensity = getDawnCycleIntensity();
+    vec3 sunReflectionColor = mix(white, uDawnGrassColor, dawnIntensity);
+    return mix(baseColor, sunReflectionColor, clamp(sunReflection, 0.0, 1.0));
+}
 
 void main()
 {
