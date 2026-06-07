@@ -58,6 +58,8 @@ export default class Sky {
         this.setDebug();
     }
 
+    // This sets an offscreen buffer only for rendering the sky sphere
+    // Then the rendered texture is used as the background(fullscreen quad) in the main scene
     setCustomRender() {
         this.customRender = {};
         this.customRender.scene = new THREE.Scene();
@@ -313,17 +315,10 @@ export default class Sky {
         this.sky.material.uniforms.uDayCycleProgress.value = dayState.progress;
 
         // Update camera uniforms for raymarching
-        const mainCamera = this.view.camera.instance;
+        const mainCamera = this.view.camera.instance; // same as player state's camera
+        // This is the camera position in world space
         this.sky.material.uniforms.uCameraPosition.value.copy(
             mainCamera.position,
-        );
-        // This is the inverse of the projection matrix,
-        // needed for getting the camera's near-plane frustum points, and thus ray directions in world space
-        this.sky.material.uniforms.uInverseProjectionMatrix.value.copy(
-            mainCamera.projectionMatrixInverse,
-        );
-        this.sky.material.uniforms.uCameraWorldMatrix.value.copy(
-            mainCamera.matrixWorld,
         );
 
         // // Stars
@@ -335,7 +330,7 @@ export default class Sky {
         // this.stars.material.uniforms.uHeightFragments.value =
         //     this.viewport.height * this.viewport.clampedPixelRatio;
 
-        // Render in render target
+        // Render the sky in the offscreen buffer
         this.customRender.camera.quaternion.copy(
             this.view.camera.instance.quaternion,
         );

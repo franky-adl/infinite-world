@@ -11,6 +11,13 @@
 - I was using a full screen quad to render the sky, but now I need to reintroduce the sky colors from Bruno's vertex shader, so I switched back to using a sphere, and turns out the ray direction calculation now is much simpler.
 - the vDawnIntensity calculated from the vertex shader is useful for mixing the cloud colors with the dawn color during sunrise/sunset.
 
+### Fixing the stretched clouds issue
+
+- After adding the axesHelper, the clouds look stretched in the z axis in particular and initially I had no idea
+- Then I looked into the player camera to understand it completely, and confirmed that the raymarching vectors are correctly calculated, I suspected something wrong with the texture
+- Looking further into how the 3D noise texture should be correctly sampled, I realized I've mixed up the one of the axis. Initially I thought the worldspace y-axis is the same as in the v in uvw of the texture space, but that was kinda wrong. There isn't a single correct answer in how you map the axes, but you need to know what you're doing to map them correctly for you.
+- So I treated the depth(W) axis in the 3D texture as the worldspace y-axis and renamed variables to make this clear, such that in the raymarching, I need to put the normalized y value in the w slot to correctly sample the texture. This way, the stretching issue is resolved and the clouds look normal again.
+
 ### Useful References
 
 - SimonDev on "How Big Budget AAA Games Render Clouds" [https://www.youtube.com/watch?v=Qj_tK_mdRcA]

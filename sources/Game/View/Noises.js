@@ -190,7 +190,7 @@ export default class Noises {
         texture3D.magFilter = THREE.LinearFilter;
         texture3D.wrapS = THREE.RepeatWrapping;
         texture3D.wrapT = THREE.RepeatWrapping;
-        texture3D.wrapR = THREE.RepeatWrapping;
+        texture3D.wrapR = THREE.RepeatWrapping; // corresponds to W(depth) in UVW mapping
         texture3D.needsUpdate = true;
 
         return texture3D;

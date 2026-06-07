@@ -7,15 +7,14 @@ uniform float uLayer;
 
 void main()
 {
-    // XZ tiling frequency
-    const float freqXZ = 1.0;
+    // UV tiling frequency
+    const float freqUV = 1.0;
 
-    // Y frequency — scaled so cells are isotropic.
-    const float freqY = 1.0;
+    // W frequency — scaled so cells are isotropic.
+    const float freqW = 1.0;
 
-    // 3D sample coordinate:
-    //   x → vUv.x (world X), y → uLayer (world Y height), z → vUv.y (world Z)
-    vec3 p   = vec3(vUv.x * freqXZ, uLayer * freqY, vUv.y * freqXZ);
+    // 3D sample coordinate in UVW space:
+    vec3 p   = vec3(vUv.x * freqUV, vUv.y * freqUV, uLayer * freqW);
 
     float perlin = perlinfbm(p, 1., 4);
     float worley = worleyFbm(p, 3.);

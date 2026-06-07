@@ -32,7 +32,9 @@ export default class CameraThirdPerson {
     update() {
         if (!this.active) return;
 
-        // Phi and theta
+        // Determine the spherical angles based on pointer input
+        // Phi is the polar angle from the polar axis (Y-axis) which is clamped between the phiLimits (0.1 - 3.04)
+        // Theta is the azimuthal angle in the XZ plane around the polar axis
         if (this.controls.pointer.down || this.viewport.pointerLock.active) {
             const normalisedPointer = this.viewport.normalise(
                 this.controls.pointer.delta,
@@ -45,12 +47,14 @@ export default class CameraThirdPerson {
         }
 
         // Position
-        const sinPhiRadius = Math.sin(this.phi) * this.distance;
+        const horzDist = Math.sin(this.phi) * this.distance;
         const sphericalPosition = vec3.fromValues(
-            sinPhiRadius * Math.sin(this.theta),
+            horzDist * Math.sin(this.theta),
             Math.cos(this.phi) * this.distance,
-            sinPhiRadius * Math.cos(this.theta),
+            horzDist * Math.cos(this.theta),
         );
+        // The 3rdPerson Camera's position is the current player position
+        // plus the relative spherical position offset away from the player
         vec3.add(
             this.position,
             this.player.position.current,
@@ -64,12 +68,12 @@ export default class CameraThirdPerson {
             this.player.position.current[2],
         );
 
-        // Quaternion
+        // Quaternion making the camera look at the target (player's position with offset)
         const toTargetMatrix = mat4.create();
         mat4.targetTo(toTargetMatrix, this.position, target, this.gameUp);
         quat2.fromMat4(this.quaternion, toTargetMatrix);
 
-        // Clamp to ground
+        // Clamp to ground so that camera does not see underground
         const chunks = this.state.chunks;
         const elevation = chunks.getElevationForPosition(
             this.position[0],

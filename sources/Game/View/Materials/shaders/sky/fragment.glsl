@@ -15,11 +15,11 @@ varying float vDawnIntensity;
 #define CLOUD_BOTTOM      100.0
 #define CLOUD_TOP         250.0
 #define CLOUD_THICKNESS   (CLOUD_TOP - CLOUD_BOTTOM)
-#define UP_STEPS          30
+#define UP_STEPS          50
 #define LIGHT_STEP_SIZE   1.0   // world-units per upward light sample (4 steps spans full slab)
 #define DENSITY_THRESHOLD 0.01
 #define MAX_OPTICAL_DEPTH 60.0  // for early raymarch break; higher values → fewer early breaks but more potential overdraw
-#define CLOUD_SCALE       500.0
+#define CLOUD_SCALE       400.0
 #define ABSORPTION        0.05   // controls how quickly optical depth saturates to white
 #define LIGHT_ABSORPTION  0.02   // absorption for upward light rays (stronger → darker undersides)
 #define CLOUD_SPEED       15.0  // world-units per millisecond scrolled in x
@@ -90,7 +90,8 @@ void main()
         vec3 samplePos = rayOrigin + (t_enter + float(i) * stepSize) * rayDir;
         float normY   = (samplePos.y - CLOUD_BOTTOM) / CLOUD_THICKNESS;
         float scroll  = uTime * CLOUD_SPEED;
-        vec3  uvw     = vec3((samplePos.x + scroll) / CLOUD_SCALE, normY, (samplePos.z + scroll * 0.3) / CLOUD_SCALE);
+        // converting xyz world space into uvw texture space (mapping y to w, z to v, x to u)
+        vec3  uvw     = vec3((samplePos.x + scroll) / CLOUD_SCALE, (samplePos.z + scroll * 0.3) / CLOUD_SCALE, normY);
         float density = texture(uNoise3D, uvw).r;
         if (density > DENSITY_THRESHOLD) {
             opticalDepth += density * stepSize;
@@ -105,7 +106,7 @@ void main()
             {
                 float lPosY = samplePos.y + float(j) * LIGHT_STEP_SIZE;
                 float lnormY = (lPosY - CLOUD_BOTTOM) / CLOUD_THICKNESS;
-                vec3  luvw   = vec3(uvw.x, lnormY, uvw.z);
+                vec3  luvw   = vec3(uvw.x, uvw.y, lnormY);
                 accDensity += texture(uNoise3D, luvw).g;
             }
             // Same Beer's law applied
