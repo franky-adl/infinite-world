@@ -13,7 +13,7 @@ export default function SkyMaterial() {
             uCameraWorldMatrix: { value: new THREE.Matrix4() },
             uSunPosition: { value: new THREE.Vector3() },
             uAtmosphereElevation: { value: 0.5 },
-            uAtmospherePower: { value: 10 },
+            uAtmospherePower: { value: 6 },
             uColorDayCycleLow: { value: new THREE.Color() },
             uColorDayCycleHigh: { value: new THREE.Color() },
             uColorNightLow: { value: new THREE.Color() },

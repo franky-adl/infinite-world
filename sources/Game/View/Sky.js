@@ -5,7 +5,6 @@ import View from "@/View/View.js";
 import State from "@/State/State.js";
 import Debug from "@/Debug/Debug.js";
 import SkyBackgroundMaterial from "./Materials/SkyBackgroundMaterial.js";
-import SkySphereMaterial from "./Materials/SkySphereMaterial.js";
 import SkyMaterial from "./Materials/SkyMaterial.js";
 import StarsMaterial from "./Materials/StarsMaterial.js";
 
@@ -16,7 +15,7 @@ import StarsMaterial from "./Materials/StarsMaterial.js";
  *
  * 1. Custom render target (10% resolution)
  *    - Only `this.sphere.mesh` is in `customRender.scene`.
- *    - The SkySphereMaterial vertex shader computes `vColor` from several layers:
+ *    - The SkyMaterial vertex shader computes `vColor` from several layers:
  *        - Day base:   uColorDayCycleLow (horizon) → uColorDayCycleHigh (zenith)
  *        - Night base: uColorNightLow (horizon)    → uColorNightHigh (zenith)
  *        - Day/Night mix: dayIntensity = |uDayCycleProgress - 0.5| * 2
@@ -106,12 +105,29 @@ export default class Sky {
         const noise3D = this.view.noises.create3D();
         this.sky.material.uniforms.uNoise3D.value = noise3D;
 
-        this.sky.material.uniforms.uColorDayCycleLow.value.set("#f0fff9");
-        this.sky.material.uniforms.uColorDayCycleHigh.value.set("#2e89ff");
-        this.sky.material.uniforms.uColorNightLow.value.set("#004794");
-        this.sky.material.uniforms.uColorNightHigh.value.set("#001624");
-        this.sky.material.uniforms.uColorSun.value.set("#ff531a");
-        this.sky.material.uniforms.uColorDawn.value.set("#ff5000");
+        // Store hex values separately for dat.GUI to work with
+        this.sky.colors = {
+            dayCycleLow: "#f6e6f9",
+            dayCycleHigh: "#7ca7fd",
+            nightLow: "#010109",
+            nightHigh: "#010509",
+            sun: "#ffffff",
+            dawn: "#ff8800",
+        };
+
+        // Set initial uniform values from hex
+        Object.entries(this.sky.colors).forEach(([key, hex]) => {
+            const uniformKey = {
+                dayCycleLow: "uColorDayCycleLow",
+                dayCycleHigh: "uColorDayCycleHigh",
+                nightLow: "uColorNightLow",
+                nightHigh: "uColorNightHigh",
+                sun: "uColorSun",
+                dawn: "uColorDawn",
+            }[key];
+            this.sky.material.uniforms[uniformKey].value.set(hex);
+        });
+
         this.sky.material.uniforms.uDayCycleProgress.value = 0;
         this.sky.material.side = THREE.BackSide;
 
@@ -224,18 +240,32 @@ export default class Sky {
             .max(20)
             .step(1)
             .name("uAtmospherePower");
+
+        // Color controls using hex string wrapper objects
         skyMaterialFolder
-            .addColor(this.sky.material.uniforms.uColorDayCycleLow, "value")
-            .name("uColorDayCycleLow");
+            .addColor(this.sky.colors, "dayCycleLow")
+            .name("uColorDayCycleLow")
+            .onChange((hex) => {
+                this.sky.material.uniforms.uColorDayCycleLow.value.set(hex);
+            });
         skyMaterialFolder
-            .addColor(this.sky.material.uniforms.uColorDayCycleHigh, "value")
-            .name("uColorDayCycleHigh");
+            .addColor(this.sky.colors, "dayCycleHigh")
+            .name("uColorDayCycleHigh")
+            .onChange((hex) => {
+                this.sky.material.uniforms.uColorDayCycleHigh.value.set(hex);
+            });
         skyMaterialFolder
-            .addColor(this.sky.material.uniforms.uColorNightLow, "value")
-            .name("uColorNightLow");
+            .addColor(this.sky.colors, "nightLow")
+            .name("uColorNightLow")
+            .onChange((hex) => {
+                this.sky.material.uniforms.uColorNightLow.value.set(hex);
+            });
         skyMaterialFolder
-            .addColor(this.sky.material.uniforms.uColorNightHigh, "value")
-            .name("uColorNightHigh");
+            .addColor(this.sky.colors, "nightHigh")
+            .name("uColorNightHigh")
+            .onChange((hex) => {
+                this.sky.material.uniforms.uColorNightHigh.value.set(hex);
+            });
         skyMaterialFolder
             .add(this.sky.material.uniforms.uDawnAngleAmplitude, "value")
             .min(0)
@@ -249,8 +279,11 @@ export default class Sky {
             .step(0.01)
             .name("uDawnElevationAmplitude");
         skyMaterialFolder
-            .addColor(this.sky.material.uniforms.uColorDawn, "value")
-            .name("uColorDawn");
+            .addColor(this.sky.colors, "dawn")
+            .name("uColorDawn")
+            .onChange((hex) => {
+                this.sky.material.uniforms.uColorDawn.value.set(hex);
+            });
         skyMaterialFolder
             .add(this.sky.material.uniforms.uSunAmplitude, "value")
             .min(0)
@@ -264,8 +297,11 @@ export default class Sky {
             .step(0.01)
             .name("uSunMultiplier");
         skyMaterialFolder
-            .addColor(this.sky.material.uniforms.uColorSun, "value")
-            .name("uColorSun");
+            .addColor(this.sky.colors, "sun")
+            .name("uColorSun")
+            .onChange((hex) => {
+                this.sky.material.uniforms.uColorSun.value.set(hex);
+            });
 
         // // Stars
         // const starsFolder = this.debug.ui.getFolder("view/sky/stars");

@@ -25,6 +25,20 @@
 - I also adjusted the fresnelScale to be higher during dawn, and by that I skipped the original uFresnelScale uniform. Could remove later if confirmed not needed.
 - Note that the sky colors now a bit too red/pink compared to the terrain, which I need to adjust later on. But I'm content with the terrain dawn colors for now.
 
+### Fine tuning the sky colors
+
+- Currently there are several issues:
+-   1. sky color is too bright around the sun during sunset
+-   2. dayCycleLow should be a bit more darker during sunset, but only at the other end of the horizon, not the whole horizon
+-   3. The afterglow session is weird, the sky should darken more significantly after sun is down but right now the afterglow is way too bright and the colors don't look right(should be a darkened orange/red)
+- New approach for solving above issues:
+-   1. Infuse your ideal dawn colors into the colorHigh -> low transitions
+       a. When noon, just simple colorHigh -> low
+       b. when dawn, apply the 3 colors transition + lower brightness opposite the sun (using sunAngleIntensity: derived from angle from vertex to sun [0..PI])
+       c. when night, just simple colorHigh -> low
+    2. Then just blendAdd your sun glow, no need extra step for dawn colors adjusting
+- I've also added remapClamp function to fix the issue of the previous remap function that produces weird out of bounds colors when mixing.
+
 ### Useful References
 
 - SimonDev on "How Big Budget AAA Games Render Clouds" [https://www.youtube.com/watch?v=Qj_tK_mdRcA]

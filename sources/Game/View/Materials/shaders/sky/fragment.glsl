@@ -27,7 +27,11 @@ varying float vDawnIntensity;
 #define THRES_OFFSET      0.12   // range over which clouds fade into sky near horizon
 #define CLOUD_WHITE       vec3(1.0, 1.0, 1.0)
 #define CLOUD_SHADOW      vec3(0.55, 0.57, 0.68)  // blue-grey colour for unlit cloud undersides
-#define SUN_COLOR         vec3(1.0, 0.97, 0.94)
+#define SUN_COLOR         vec3(1.0, 1.0, 1.0)
+
+// void main() {
+//     gl_FragColor = vec4(vColor, 1.);
+// }
 
 void main()
 {
