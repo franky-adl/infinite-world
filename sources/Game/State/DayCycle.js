@@ -8,9 +8,9 @@ export default class DayCycle {
         this.state = State.getInstance();
         this.debug = Debug.getInstance();
 
-        this.autoUpdate = true;
+        this.autoUpdate = false;
         this.timeProgress = 0;
-        this.progress = 0;
+        this.progress = 0.25;
         this.duration = 30; // Seconds
 
         this.setDebug();
@@ -28,7 +28,10 @@ export default class DayCycle {
     setDebug() {
         if (!this.debug.active) return;
 
+        const parent = this.debug.ui.getFolder("state");
+        parent.open();
         const folder = this.debug.ui.getFolder("state/dayCycle");
+        folder.open();
 
         folder.add(this, "autoUpdate");
 

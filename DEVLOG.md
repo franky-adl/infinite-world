@@ -38,6 +38,8 @@
        c. when night, just simple colorHigh -> low
     2. Then just blendAdd your sun glow, no need extra step for dawn colors adjusting
 - I've also added remapClamp function to fix the issue of the previous remap function that produces weird out of bounds colors when mixing.
+- Initially I thought the hexcode of the uColorDawn is the same in the fragment shader, but I was wrong: With ColorManagement.enabled = true set (recommended), certain conversions are made automatically. Because hexadecimal and CSS colors are generally sRGB, Color methods will automatically convert these inputs from sRGB to Linear-sRGB in setters, or convert from Linear-sRGB to sRGB when returning hexadecimal or CSS output from getters.
+- Also for optimization purposes, I moved the cloud color mixing mostly to the vertex shader.
 
 ### Useful References
 

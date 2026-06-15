@@ -20,10 +20,20 @@ uniform vec3 uColorSun;
 uniform float uDayCycleProgress;
 
 varying vec3 vColor;
-varying float vDawnIntensity;
+varying vec3 vCloudBody;
+varying vec3 vCloudShadow;
 varying vec3 vWorldPosition;
 
-#include ../partials/getDawnCycleIntensity.glsl;
+#define CLOUD_WHITE       vec3(1.0, 1.0, 1.0)
+#define CLOUD_SHADOW      vec3(0.55, 0.57, 0.68)  // blue-grey colour for unlit cloud undersides
+#define CLOUD_PREDAWN_CLR vec3(1.00, 0.88, 0.55) // warm light yellow for clouds before dawn
+#define CLOUD_PREDAWN_SHA vec3(1.0, 0.3, 0.0)   // warm red for cloud shadows before dawn
+#define CLOUD_DAWN_COLOR  vec3(0.47, 0.25, 0.34)  // warm orange for dawn clouds
+#define CLOUD_DAWN_SHADE  vec3(0.96, 0.62, 0.30)  // warm orange for dawn clouds
+#define CLOUD_NIGHT_COLOR vec3(0.06, 0.06, 0.08)  // near black for NIGHT clouds
+#define CLOUD_NIGHT_SHADE vec3(0.02, 0.02, 0.02)  // near black for NIGHT clouds
+#define CLOUD_LIGHT_COEF  vec3(0.1, 0.15, 0.55) 
+
 #include ../partials/inverseLerp.glsl;
 #include ../partials/remapClamp.glsl;
 
@@ -57,6 +67,7 @@ void main()
     float dayFactor = max(cos(uDayCycleProgress * 2.0 * M_PI), 0.);
     dayFactor = smoothstep(0.0, 0.35, dayFactor);
     float nightFactor = -1. * min(cos(uDayCycleProgress * 2.0 * M_PI), 0.);
+    float postDawnFactor = smoothstep(0.0, 0.35, nightFactor);
     // hasten the nightFactor by smoothstep
     nightFactor = smoothstep(0.0, 0.5, nightFactor);
 
@@ -66,24 +77,20 @@ void main()
     // Sun Angle: 0 directly facing sun, PI directly opposite sun
     float sunAngle = acos(dot(normalize(uSunPosition), normalizedPosition));
     // Dawn angle intensity: 1 when facing the sun, 0 when facing away
-    float sunAngleIntensity = exp(-sunAngle * 0.66) ;
+    float sunAngleIntensity = exp(-sunAngle * 0.66);
+    // use a slower varying intensity for the clouds
+    float cSunAngleIntensity = exp(-sunAngle * 0.5);
     
     // my ideal dawn colors
     vec3 colorDawn = mix(vec3(0.85, 0.84, 0.80), vec3(0.96, 0.62, 0.30), remapClamp(horizonIntensity, 0.5, 1.0, 0.0, 1.0));
     colorDawn = mix(vec3(0.60, 0.60, 0.89), colorDawn, remapClamp(horizonIntensity, 0.0, 0.5, 0.0, 1.0));
-    // Reduce light intensity over to the opposite side of the sun
-    colorDawn = mix(colorDawn * (sunAngleIntensity * 0.5 + 0.5), colorDawn, dayFactor);
+    // Reduce light intensity and redness over to the opposite side of the sun
+    vec3 lightCoef = vec3(0.1, 0.15, 0.55);
+    colorDawn = mix(colorDawn * mix(lightCoef, vec3(1.), sunAngleIntensity), colorDawn, dayFactor);
 
     // Final base sky color mix
     vec3 color = mix(colorDawn, colorDay, dayFactor);
     color = mix(color, colorNight, nightFactor);
-
-    /**
-     * TODO: review usage for the fragment shader
-     */
-    // Final dawn intensity and color
-    float dawnIntensity = clamp(sunAngleIntensity * getDawnCycleIntensity(), 0.0, 1.0);
-    vDawnIntensity = dawnIntensity;
 
     /**
      * Sun glow
@@ -94,8 +101,21 @@ void main()
     vec3 colorSun = mix(uColorSun, uColorDawn, 1. - dayFactor); // sun color needs to stay uColorDawn after sunset
     color = blendAdd(color, colorSun, sunIntensity * exp(-nightFactor * 5.));
 
-    float sunGlowStrength = pow(max(0.0, 1.0 + 0.05 - distanceToSun * 2.5), 2.0) * exp(-nightFactor * 10.);
+    float sunGlowStrength = pow(max(0.0, 1.0 + 0.05 - distanceToSun * 2.5), 2.0) * dayFactor * exp(-nightFactor * 10.);
     color = blendAdd(color, vec3(1.00, 0.94, 0.67), sunGlowStrength);
 
+    /**
+     * Color Varyings for the fragment shader
+     */
     vColor = vec3(color);
+
+    // cloud colors (dawn color introduced for clouds as well, modulated by sun intensity so it only affects clouds near the sun)
+    vCloudBody = mix(CLOUD_PREDAWN_CLR, CLOUD_WHITE, dayFactor);
+    vCloudBody = mix(vCloudBody, CLOUD_DAWN_COLOR, postDawnFactor);
+    vCloudBody = mix(vCloudBody * mix(CLOUD_LIGHT_COEF, vec3(1.), cSunAngleIntensity), vCloudBody, dayFactor);
+    vCloudBody = mix(vCloudBody, CLOUD_NIGHT_COLOR, nightFactor);
+    vCloudShadow = mix(CLOUD_PREDAWN_SHA, CLOUD_SHADOW, dayFactor);
+    vCloudShadow = mix(vCloudShadow, CLOUD_DAWN_SHADE, postDawnFactor);
+    vCloudShadow = mix(vCloudShadow * mix(CLOUD_LIGHT_COEF, vec3(1.), cSunAngleIntensity), vCloudShadow, dayFactor);
+    vCloudShadow = mix(vCloudShadow, CLOUD_NIGHT_SHADE, nightFactor);
 }

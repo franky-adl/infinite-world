@@ -7,7 +7,8 @@ uniform vec3 uSunPosition;
 
 varying vec3 vWorldPosition;
 varying vec3 vColor;
-varying float vDawnIntensity;
+varying vec3 vCloudBody;
+varying vec3 vCloudShadow;
 
 #define MAX_STEPS         140   // at least 120 steps to not see significant banding artifacts
 #define MIN_STEPS         8
@@ -25,8 +26,6 @@ varying float vDawnIntensity;
 #define CLOUD_SPEED       15.0  // world-units per millisecond scrolled in x
 #define M_THRES           0.01  // ray y-threshold: below this blends fully into sky, raymarching skipped
 #define THRES_OFFSET      0.12   // range over which clouds fade into sky near horizon
-#define CLOUD_WHITE       vec3(1.0, 1.0, 1.0)
-#define CLOUD_SHADOW      vec3(0.55, 0.57, 0.68)  // blue-grey colour for unlit cloud undersides
 #define SUN_COLOR         vec3(1.0, 1.0, 1.0)
 
 // void main() {
@@ -45,14 +44,9 @@ void main()
     float horizonFactor = smoothstep(M_THRES, M_THRES + THRES_OFFSET, rayDir.y);
     vec3 skyColor   = mix(vColor, SUN_COLOR, sunIntensity * horizonFactor);
     
-    // cloud colors (dawn color introduced for clouds as well, modulated by sun intensity so it only affects clouds near the sun)
-    float mixFactor = abs(uDayCycleProgress - 0.5) * 1.5 + 0.25;
-    vec3 mixedCloud = mix(CLOUD_WHITE, uColorDawn, vDawnIntensity * 0.3);
-    vec3 cloudWhite = mix(skyColor, mixedCloud, mixFactor);
-    vec3 mixedShadow = mix(CLOUD_SHADOW, uColorDawn * 1.2, vDawnIntensity);
-    vec3 cloudShadow = mix(skyColor, mixedShadow, mixFactor);
-    vec3 cloudColor = mix(skyColor, cloudWhite, horizonFactor); // clouds merge with skycolor(fog effect) near the horizon
-    vec3 cloudShade = mix(skyColor, cloudShadow, horizonFactor); // cloud shadows also fade into sky near horizon
+    // cloudColor and cloudShade are the final colors used for clouds coloring in raymarching
+    vec3 cloudColor = mix(skyColor, vCloudBody, horizonFactor); // clouds merge with skycolor(fog effect) near the horizon
+    vec3 cloudShade = mix(skyColor, vCloudShadow, horizonFactor); // cloud shadows also fade into sky near horizon
     
     // --- Intersect ray with horizontal cloud-layer slab ---
     float t_enter, t_exit;
