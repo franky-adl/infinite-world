@@ -12,6 +12,7 @@ export default function SkyMaterial() {
             uInverseProjectionMatrix: { value: new THREE.Matrix4() },
             uCameraWorldMatrix: { value: new THREE.Matrix4() },
             uSunPosition: { value: new THREE.Vector3() },
+            uMoonPosition: { value: new THREE.Vector3() },
             uAtmosphereElevation: { value: 0.5 },
             uAtmospherePower: { value: 6 },
             uColorDayCycleLow: { value: new THREE.Color() },

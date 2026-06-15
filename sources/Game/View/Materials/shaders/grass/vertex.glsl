@@ -19,6 +19,7 @@ uniform float uFresnelOffset;
 uniform float uFresnelScale;
 uniform float uFresnelPower;
 uniform vec3 uSunPosition;
+uniform vec3 uMoonPosition;
 uniform vec3 uDawnGrassColor;
 
 attribute vec2 center;
@@ -29,13 +30,14 @@ varying vec3 vColor;
 #include ../partials/getDawnCycleIntensity.glsl;
 #include ../partials/inverseLerp.glsl
 #include ../partials/remap.glsl
+#include ../partials/remapClamp.glsl
 #include ../partials/getSunShade.glsl;
 #include ../partials/getSunShadeColor.glsl;
-#include ../partials/getSunReflection.glsl;
+#include ../partials/getSunMoonReflection.glsl;
 #include ../partials/getGrassAttenuation.glsl;
 #include ../partials/getRotatePivot2d.glsl;
 
-vec3 getSunReflectionColor(vec3 baseColor, float sunReflection, float tipness)
+vec3 getReflectionColor(vec3 baseColor, float sunReflection, float tipness)
 {
     vec3 white = vec3(1.0, 1.0, 1.0);
     float dawnIntensity = getDawnCycleIntensity();
@@ -115,17 +117,16 @@ void main()
     vec3 color = mix(lowColor, uGrassDefaultColor, tipness);
 
     // Sun shade - 0 at midday when sun is above, 1 at midnight when sun is below
-    float sunShade = getSunShade(normal);
+    vec3 worldNormal = normalize(modelMatrix * vec4(normal, 0.0)).xyz;
+    float sunShade = getSunShade(worldNormal);
     // Gets mixed to the shaded color during midnight
     color = getSunShadeColor(color, sunShade);
 
-    // Sun reflection - lerps to white based on sun reflection and fresnel amount
+    // Sun & Moon reflection - lerps to white based on sun reflection and fresnel amount
     vec3 viewDirection = normalize(modelPosition.xyz - cameraPosition);
-    // vec3 normal = vec3(0.0, 1.0, 0.0);
-    vec3 worldNormal = normalize(modelMatrix * vec4(normal, 0.0)).xyz;
     vec3 viewNormal = normalize(normalMatrix * normal);
-    float sunReflection = getSunReflection(viewDirection, worldNormal, viewNormal);
-    color = getSunReflectionColor(color, sunReflection, tipness);
+    float sunReflection = getSunMoonReflection(viewDirection, worldNormal, viewNormal);
+    color = getReflectionColor(color, sunReflection, tipness);
 
     vColor = color;
     // vColor = vec3(slope);

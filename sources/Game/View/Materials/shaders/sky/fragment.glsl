@@ -3,6 +3,7 @@ uniform float uTime;
 uniform vec3 uCameraPosition;
 uniform float uDayCycleProgress;
 uniform vec3 uSunPosition;
+uniform vec3 uMoonPosition;
 
 varying vec3 vWorldPosition;
 varying vec3 vColor;
@@ -10,7 +11,7 @@ varying vec3 vCloudBody;
 varying vec3 vCloudShadow;
 varying vec3 vSunColor;
 
-#define MAX_STEPS         140   // at least 120 steps to not see significant banding artifacts
+#define MAX_STEPS         120   // at least 120 steps to not see significant banding artifacts
 #define MIN_STEPS         8
 #define MAX_DISTANCE      500.0
 #define CLOUD_BOTTOM      100.0
@@ -40,11 +41,15 @@ void main()
     // adding sun to sky color
     float distanceToSun = distance(rayDir, uSunPosition);
     float sunIntensity = smoothstep(0.012, 0.01, distanceToSun); // simple radial sun glow, also used to modulate dawn color
-    float sunHorizonFactor = smoothstep(0., 0.02, rayDir.y); // sun only affects sky color near the horizon
+    float horizonFactor = smoothstep(M_THRES, M_THRES + THRES_OFFSET, rayDir.y);
+    float sunHorizonFactor = smoothstep(0., 0.02, rayDir.y);
     vec3 skyColor   = mix(vColor, vSunColor, sunIntensity * sunHorizonFactor);
+    // adding moon to sky color
+    float distanceToMoon = distance(rayDir, uMoonPosition);
+    float moonIntensity = smoothstep(0.012, 0.01, distanceToMoon); // simple radial moon glow, also used to modulate night color
+    skyColor   = mix(skyColor, vec3(1.0), moonIntensity * horizonFactor);
     
     // cloudColor and cloudShade are the final colors used for clouds coloring in raymarching
-    float horizonFactor = smoothstep(M_THRES, M_THRES + THRES_OFFSET, rayDir.y);
     vec3 cloudColor = mix(skyColor, vCloudBody, horizonFactor); // clouds merge with skycolor(fog effect) near the horizon
     vec3 cloudShade = mix(skyColor, vCloudShadow, horizonFactor); // cloud shadows also fade into sky near horizon
     

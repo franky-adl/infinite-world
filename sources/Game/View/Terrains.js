@@ -47,6 +47,11 @@ export default class Terrains {
             -0.5,
             -0.5,
         );
+        this.material.uniforms.uMoonPosition.value = new THREE.Vector3(
+            0.5,
+            0.5,
+            0.5,
+        );
         this.material.uniforms.uFogTexture.value =
             this.sky.customRender.texture;
         this.material.uniforms.uGrassDistance.value = this.state.chunks.minSize;
@@ -117,6 +122,7 @@ export default class Terrains {
         const playerState = this.state.player;
         const playerPosition = playerState.position.current;
         const sunState = this.state.sun;
+        const moonState = this.state.moon;
 
         this.material.uniforms.uPlayerPosition.value.set(
             playerPosition[0],
@@ -127,6 +133,11 @@ export default class Terrains {
             sunState.position.x,
             sunState.position.y,
             sunState.position.z,
+        );
+        this.material.uniforms.uMoonPosition.value.set(
+            moonState.position.x,
+            moonState.position.y,
+            moonState.position.z,
         );
         this.material.uniforms.uDayCycleProgress.value =
             this.state.day.progress;

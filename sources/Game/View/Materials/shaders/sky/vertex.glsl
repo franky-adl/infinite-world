@@ -1,6 +1,7 @@
 #define M_PI 3.1415926535897932384626433832795
 
 uniform vec3 uSunPosition;
+uniform vec3 uMoonPosition;
 
 uniform float uAtmosphereElevation;
 uniform float uAtmospherePower;
@@ -29,7 +30,7 @@ varying vec3 vSunColor;
 #define SUN_DAWN          vec3(1.0, 0.8, 0.1)
 #define CLOUD_WHITE       vec3(1.0, 1.0, 1.0)
 #define CLOUD_SHADOW      vec3(0.55, 0.57, 0.68)  // blue-grey colour for unlit cloud undersides
-#define CLOUD_PREDAWN_CLR vec3(1.00, 0.88, 0.55) // warm light yellow for clouds before dawn
+#define CLOUD_PREDAWN_CLR vec3(0.99, 0.93, 0.51) // warm light yellow for clouds before dawn
 #define CLOUD_PREDAWN_SHA vec3(1.0, 0.3, 0.0)   // warm red for cloud shadows before dawn
 #define CLOUD_DAWN_COLOR  vec3(0.47, 0.25, 0.34)  // warm orange for dawn clouds
 #define CLOUD_DAWN_SHADE  vec3(0.96, 0.62, 0.30)  // warm orange for dawn clouds
@@ -72,6 +73,7 @@ void main()
     dayFactor = smoothstep(0.0, 0.35, dayFactor);
     float nightFactor = -1. * min(cos(uDayCycleProgress * 2.0 * M_PI), 0.);
     float postDawnFactor = smoothstep(0.0, 0.35, nightFactor);
+    float moonFactor = smoothstep(0.15, 1.0, nightFactor);
     // hasten the nightFactor by smoothstep
     nightFactor = smoothstep(0.0, 0.5, nightFactor);
 
@@ -105,8 +107,16 @@ void main()
     vec3 colorSun = mix(uColorSun, uColorDawn, 1. - dayFactor); // sun color needs to stay uColorDawn after sunset
     color = blendAdd(color, colorSun, sunIntensity * exp(-nightFactor * 5.));
 
-    float sunGlowStrength = pow(max(0.0, 1.0 + 0.05 - distanceToSun * 2.5), 2.0) * dayFactor * exp(-nightFactor * 10.);
+    float sunGlowStrength = pow(max(0.0, 1.05 - distanceToSun * 2.5), 2.0) * dayFactor;
     color = blendAdd(color, vec3(1.00, 0.94, 0.67), sunGlowStrength);
+
+    /**
+     * Moon glow
+     */
+    // Distance to moon
+    float distanceToMoon = distance(normalizedPosition, uMoonPosition);
+    float moonGlowStrength = pow(max(0.0, 1.05 - distanceToMoon * 1.5), 2.0) * moonFactor;
+    color = blendAdd(color, vec3(0.6, 0.7, 0.87), moonGlowStrength);
 
     /**
      * Color Varyings for the fragment shader

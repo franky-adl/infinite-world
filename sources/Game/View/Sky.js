@@ -332,6 +332,7 @@ export default class Sky {
     update() {
         const dayState = this.state.day;
         const sunState = this.state.sun;
+        const moonState = this.state.moon;
         const playerState = this.state.player;
 
         // Group
@@ -347,6 +348,11 @@ export default class Sky {
             sunState.position.x,
             sunState.position.y,
             sunState.position.z,
+        );
+        this.sky.material.uniforms.uMoonPosition.value.set(
+            moonState.position.x,
+            moonState.position.y,
+            moonState.position.z,
         );
         this.sky.material.uniforms.uDayCycleProgress.value = dayState.progress;
 

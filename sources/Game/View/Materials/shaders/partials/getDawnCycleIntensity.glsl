@@ -7,6 +7,6 @@
 float getDawnCycleIntensity()
 {
     float intensity = cos(uDayCycleProgress * 4.0 * M_PI + M_PI) * 0.5 + 0.5;
-    intensity = pow(intensity, 6.); // tune the sharpness of dawn/dusk transition
+    intensity = smoothstep(0.9, 1.0, intensity); // tune the sharpness of dawn/dusk transition
     return intensity;
 }

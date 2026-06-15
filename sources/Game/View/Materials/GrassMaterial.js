@@ -25,6 +25,7 @@ export default function GrassMaterial() {
             uFresnelScale: { value: null },
             uFresnelPower: { value: null },
             uSunPosition: { value: null },
+            uMoonPosition: { value: null },
             uDawnGrassColor: { value: null },
         },
         vertexShader: vertexShader,

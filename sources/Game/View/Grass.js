@@ -235,6 +235,11 @@ export default class Grass {
             -0.5,
             -0.5,
         );
+        this.material.uniforms.uMoonPosition.value = new THREE.Vector3(
+            0.5,
+            0.5,
+            0.5,
+        );
         this.material.uniforms.uDawnGrassColor.value = new THREE.Color(
             1.0,
             0.6,
@@ -255,12 +260,18 @@ export default class Grass {
         const playerPosition = playerState.position.current;
         const engineChunks = this.state.chunks;
         const sunState = this.state.sun;
+        const moonState = this.state.moon;
 
         this.material.uniforms.uTime.value = this.time.elapsed;
         this.material.uniforms.uSunPosition.value.set(
             sunState.position.x,
             sunState.position.y,
             sunState.position.z,
+        );
+        this.material.uniforms.uMoonPosition.value.set(
+            moonState.position.x,
+            moonState.position.y,
+            moonState.position.z,
         );
         this.material.uniforms.uDayCycleProgress.value = dayState.progress;
 

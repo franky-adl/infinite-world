@@ -13,6 +13,7 @@ export default function TerrainMaterial() {
             uFresnelScale: { value: null },
             uFresnelPower: { value: null },
             uSunPosition: { value: null },
+            uMoonPosition: { value: null },
             uFogTexture: { value: null },
             uGrassDistance: { value: null },
             uTexture: { value: null },
