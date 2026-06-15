@@ -10,7 +10,7 @@ export default class DayCycle {
 
         this.autoUpdate = false;
         this.timeProgress = 0;
-        this.progress = 0.25;
+        this.progress = 0.245;
         this.duration = 30; // Seconds
 
         this.setDebug();

@@ -23,7 +23,10 @@ varying vec3 vColor;
 varying vec3 vCloudBody;
 varying vec3 vCloudShadow;
 varying vec3 vWorldPosition;
+varying vec3 vSunColor;
 
+#define SUN_COLOR         vec3(1.0, 1.0, 1.0)
+#define SUN_DAWN          vec3(1.0, 0.8, 0.1)
 #define CLOUD_WHITE       vec3(1.0, 1.0, 1.0)
 #define CLOUD_SHADOW      vec3(0.55, 0.57, 0.68)  // blue-grey colour for unlit cloud undersides
 #define CLOUD_PREDAWN_CLR vec3(1.00, 0.88, 0.55) // warm light yellow for clouds before dawn
@@ -65,6 +68,7 @@ void main()
 
     // separate day night factors for more realistic mixing (mainly at horizon)
     float dayFactor = max(cos(uDayCycleProgress * 2.0 * M_PI), 0.);
+    float sunDawnFactor = smoothstep(0.0, 0.15, dayFactor);
     dayFactor = smoothstep(0.0, 0.35, dayFactor);
     float nightFactor = -1. * min(cos(uDayCycleProgress * 2.0 * M_PI), 0.);
     float postDawnFactor = smoothstep(0.0, 0.35, nightFactor);
@@ -108,6 +112,9 @@ void main()
      * Color Varyings for the fragment shader
      */
     vColor = vec3(color);
+
+    // sun color
+    vSunColor = mix(SUN_DAWN, SUN_COLOR, sunDawnFactor);
 
     // cloud colors (dawn color introduced for clouds as well, modulated by sun intensity so it only affects clouds near the sun)
     vCloudBody = mix(CLOUD_PREDAWN_CLR, CLOUD_WHITE, dayFactor);

@@ -2,13 +2,13 @@ uniform sampler3D uNoise3D;
 uniform float uTime;
 uniform vec3 uCameraPosition;
 uniform float uDayCycleProgress;
-uniform vec3 uColorDawn;
 uniform vec3 uSunPosition;
 
 varying vec3 vWorldPosition;
 varying vec3 vColor;
 varying vec3 vCloudBody;
 varying vec3 vCloudShadow;
+varying vec3 vSunColor;
 
 #define MAX_STEPS         140   // at least 120 steps to not see significant banding artifacts
 #define MIN_STEPS         8
@@ -26,7 +26,6 @@ varying vec3 vCloudShadow;
 #define CLOUD_SPEED       15.0  // world-units per millisecond scrolled in x
 #define M_THRES           0.01  // ray y-threshold: below this blends fully into sky, raymarching skipped
 #define THRES_OFFSET      0.12   // range over which clouds fade into sky near horizon
-#define SUN_COLOR         vec3(1.0, 1.0, 1.0)
 
 // void main() {
 //     gl_FragColor = vec4(vColor, 1.);
@@ -40,11 +39,12 @@ void main()
 
     // adding sun to sky color
     float distanceToSun = distance(rayDir, uSunPosition);
-    float sunIntensity = smoothstep(0.015, 0.008, distanceToSun); // simple radial sun glow, also used to modulate dawn color
-    float horizonFactor = smoothstep(M_THRES, M_THRES + THRES_OFFSET, rayDir.y);
-    vec3 skyColor   = mix(vColor, SUN_COLOR, sunIntensity * horizonFactor);
+    float sunIntensity = smoothstep(0.012, 0.01, distanceToSun); // simple radial sun glow, also used to modulate dawn color
+    float sunHorizonFactor = smoothstep(0., 0.02, rayDir.y); // sun only affects sky color near the horizon
+    vec3 skyColor   = mix(vColor, vSunColor, sunIntensity * sunHorizonFactor);
     
     // cloudColor and cloudShade are the final colors used for clouds coloring in raymarching
+    float horizonFactor = smoothstep(M_THRES, M_THRES + THRES_OFFSET, rayDir.y);
     vec3 cloudColor = mix(skyColor, vCloudBody, horizonFactor); // clouds merge with skycolor(fog effect) near the horizon
     vec3 cloudShade = mix(skyColor, vCloudShadow, horizonFactor); // cloud shadows also fade into sky near horizon
     
