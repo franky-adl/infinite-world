@@ -41,6 +41,11 @@
 - Initially I thought the hexcode of the uColorDawn is the same in the fragment shader, but I was wrong: With ColorManagement.enabled = true set (recommended), certain conversions are made automatically. Because hexadecimal and CSS colors are generally sRGB, Color methods will automatically convert these inputs from sRGB to Linear-sRGB in setters, or convert from Linear-sRGB to sRGB when returning hexadecimal or CSS output from getters.
 - Also for optimization purposes, I moved the cloud color mixing mostly to the vertex shader.
 
+### Making the grass feel more alive
+
+- Main reference comes from SimonDev's thread on X: https://x.com/iced_coffee_dev/status/2062582405269991638
+- Main idea is that the movements comes from smaller individual rustles and the bigger gusts of wind causing the whole patch of grass to sway. And you can use the same noise texture for both, just with different UV scales and time speeds.
+
 ### Useful References
 
 - SimonDev on "How Big Budget AAA Games Render Clouds" [https://www.youtube.com/watch?v=Qj_tK_mdRcA]

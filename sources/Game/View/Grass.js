@@ -14,6 +14,7 @@ export default class Grass {
         this.time = this.state.time;
         this.scene = this.view.scene;
         this.noises = this.view.noises;
+        this.debug = this.game.debug;
 
         // The number of grass blades per row/column in the grass mesh.
         // Adjust this proportionally to the size below as 'fragmentSize' is size divided by details
@@ -23,16 +24,33 @@ export default class Grass {
         this.count = this.details * this.details;
         // The size of a cell in the grid of grass blades.
         this.fragmentSize = this.size / this.details;
-        this.bladeWidthRatio = 0.8;
-        this.bladeHeightRatio = 4;
-        this.bladeHeightRandomness = 0.7;
-        this.positionRandomness = 0.5;
-        this.curveRandomness = 0.2;
+        this.bladeWidthRatio = 1.2;
+        this.bladeHeightRatio = 7;
+        this.bladeHeightRandomness = 0.5;
+        this.positionRandomness = 1.0;
+        this.curveRandomness = 0.5;
+        this.rotationRandomness = 0.25;
         this.noiseTexture = this.noises.create(128, 128);
 
         this.setGeometry();
         this.setMaterial();
         this.setMesh();
+
+        if (this.debug.active) {
+            this.debugFolder = this.debug.ui.getFolder("view/grass");
+            this.debugFolder
+                .add(this.material.uniforms.uRustleScale, "value")
+                .min(0)
+                .max(5)
+                .step(0.01)
+                .name("rustleScale");
+            this.debugFolder
+                .add(this.material.uniforms.uWindGustStrength, "value")
+                .min(0)
+                .max(5)
+                .step(0.01)
+                .name("windGustStrength");
+        }
     }
 
     // Setting up center coordinates for each vertex of each blade - called within setGeometry
@@ -57,6 +75,7 @@ export default class Grass {
         fragmentZ,
         positions,
         tipness,
+        seeds,
         vertexCount,
         iX,
         iZ,
@@ -77,49 +96,73 @@ export default class Grass {
         const curveOffset05 = curve * 0.5 * 0.5; // tipness=0.50 → 0.25
         const curveOffset075 = curve * 0.75 * 0.75; // tipness=0.75 → 0.5625
 
+        const angle = Math.random() * Math.PI * 2 * this.rotationRandomness;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+
+        const seed = Math.random() * 100;
+
         const iStride = (iX * this.details + iZ) * vertexCount * 3;
         const iStripeT = (iX * this.details + iZ) * vertexCount;
 
+        for (let i = 0; i < vertexCount; i++) {
+            seeds[iStripeT + i] = seed;
+        }
+
         // U0: Bottom-left
-        positions[iStride] = -bladeHalfWidth;
+        const u0x = -bladeHalfWidth;
+        const u0z = 0;
+        positions[iStride] = u0x * cos - u0z * sin;
         positions[iStride + 1] = 0;
-        positions[iStride + 2] = 0;
+        positions[iStride + 2] = u0x * sin + u0z * cos;
         tipness[iStripeT] = 0;
 
         // U1: Bottom-right
-        positions[iStride + 3] = bladeHalfWidth;
+        const u1x = bladeHalfWidth;
+        const u1z = 0;
+        positions[iStride + 3] = u1x * cos - u1z * sin;
         positions[iStride + 4] = 0;
-        positions[iStride + 5] = 0;
+        positions[iStride + 5] = u1x * sin + u1z * cos;
         tipness[iStripeT + 1] = 0;
 
         // U2: Mid-left 0.5
-        positions[iStride + 6] = -bladeHalfWidth * 0.9 + curveOffset05;
+        const u2x = -bladeHalfWidth * 0.9;
+        const u2z = curveOffset05;
+        positions[iStride + 6] = u2x * cos - u2z * sin;
         positions[iStride + 7] = bladeHeight * 0.5;
-        positions[iStride + 8] = 0;
+        positions[iStride + 8] = u2x * sin + u2z * cos;
         tipness[iStripeT + 2] = 0.5;
 
         // U3: Mid-right 0.5
-        positions[iStride + 9] = bladeHalfWidth * 0.9 + curveOffset05;
+        const u3x = bladeHalfWidth * 0.9;
+        const u3z = curveOffset05;
+        positions[iStride + 9] = u3x * cos - u3z * sin;
         positions[iStride + 10] = bladeHeight * 0.5;
-        positions[iStride + 11] = 0;
+        positions[iStride + 11] = u3x * sin + u3z * cos;
         tipness[iStripeT + 3] = 0.5;
 
         // U4: Top-left 0.75
-        positions[iStride + 12] = -bladeHalfWidth * 0.6 + curveOffset075;
+        const u4x = -bladeHalfWidth * 0.6;
+        const u4z = curveOffset075;
+        positions[iStride + 12] = u4x * cos - u4z * sin;
         positions[iStride + 13] = bladeHeight * 0.75;
-        positions[iStride + 14] = 0;
+        positions[iStride + 14] = u4x * sin + u4z * cos;
         tipness[iStripeT + 4] = 0.75;
 
         // U5: Top-right 0.75
-        positions[iStride + 15] = bladeHalfWidth * 0.6 + curveOffset075;
+        const u5x = bladeHalfWidth * 0.6;
+        const u5z = curveOffset075;
+        positions[iStride + 15] = u5x * cos - u5z * sin;
         positions[iStride + 16] = bladeHeight * 0.75;
-        positions[iStride + 17] = 0;
+        positions[iStride + 17] = u5x * sin + u5z * cos;
         tipness[iStripeT + 5] = 0.75;
 
         // U6: Tip
-        positions[iStride + 18] = curve;
+        const u6x = 0;
+        const u6z = curve;
+        positions[iStride + 18] = u6x * cos - u6z * sin;
         positions[iStride + 19] = bladeHeight;
-        positions[iStride + 20] = 0;
+        positions[iStride + 20] = u6x * sin + u6z * cos;
         tipness[iStripeT + 6] = 1;
     }
 
@@ -128,6 +171,7 @@ export default class Grass {
         const centers = new Float32Array(this.count * bladeVertexCount * 2);
         const positions = new Float32Array(this.count * bladeVertexCount * 3);
         const tipness = new Float32Array(this.count * bladeVertexCount);
+        const seeds = new Float32Array(this.count * bladeVertexCount);
         const indices = new Uint32Array(this.count * 15);
 
         for (let iX = 0; iX < this.details; iX++) {
@@ -149,12 +193,13 @@ export default class Grass {
                     iX,
                     iZ,
                 );
-                // Position + tipness
+                // Position + tipness + seed
                 this.setPositions(
                     fragmentX,
                     fragmentZ,
                     positions,
                     tipness,
+                    seeds,
                     bladeVertexCount,
                     iX,
                     iZ,
@@ -204,6 +249,10 @@ export default class Grass {
             "tipness",
             new THREE.Float32BufferAttribute(tipness, 1),
         );
+        this.geometry.setAttribute(
+            "seed",
+            new THREE.Float32BufferAttribute(seeds, 1),
+        );
     }
 
     setMaterial() {
@@ -245,6 +294,7 @@ export default class Grass {
             0.6,
             0.05,
         );
+        this.material.uniforms.uWindGustStrength.value = 1.0;
         // this.material.wireframe = true;
     }
 

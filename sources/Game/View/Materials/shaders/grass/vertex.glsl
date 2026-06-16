@@ -21,9 +21,12 @@ uniform float uFresnelPower;
 uniform vec3 uSunPosition;
 uniform vec3 uMoonPosition;
 uniform vec3 uDawnGrassColor;
+uniform float uRustleScale;
+uniform float uWindGustStrength;
 
 attribute vec2 center;
 attribute float tipness;
+attribute float seed;
 
 varying vec3 vColor;
 
@@ -99,12 +102,41 @@ void main()
     float scale = distanceScale;
     modelPosition.xyz = mix(modelCenter.xyz, modelPosition.xyz, scale);
 
-    // Wind - only affect the tip
-    vec2 noiseUv = modelPosition.xz * 0.02 + uTime * 0.05;
-    vec4 noiseColor = texture2D(uNoiseTexture, noiseUv);
-    modelPosition.x += (noiseColor.x - 0.5) * tipness * scale;
-    modelPosition.z += (noiseColor.y - 0.5) * tipness * scale;
+    // Individual Rustles
+    vec2 rustleUv = modelCenter.xz * seed + uTime * 0.15;
+    // The noise texture has each channel fitted with a different periodic perlin noise
+    vec4 noiseColor = texture2D(uNoiseTexture, rustleUv);
+    modelPosition.x += (noiseColor.x - 0.5) * tipness * scale * uRustleScale;
+    modelPosition.y += (noiseColor.y - 0.5) * tipness * scale * uRustleScale;
+    modelPosition.z += (noiseColor.z - 0.5) * tipness * scale * uRustleScale;
 
+    // Larger scale wind effect
+    vec2 noiseUv = modelPosition.xz * 0.01 + uTime * 0.1;
+    vec4 largeNoiseColor = texture2D(uNoiseTexture, noiseUv);
+
+    // Wind bending logic
+    // Define a fixed wind direction in the XZ plane
+    vec2 windDirection = normalize(vec2(0.2, 1.0));
+    // Use the noise to determine the strength/offset of the bend
+    float windStrength = (largeNoiseColor.r - 0.5) * 2.0;
+    // Calculate the bending angle based on tipness (0 at root, 1 at tip)
+    float windAngle = windStrength * tipness * uWindGustStrength;
+
+    // Rotate the vertex around its root (modelCenter) to maintain its length
+    // Get the relative position of the vertex to its root
+    vec3 relativePosition = modelPosition.xyz - modelCenter.xyz;
+    float currentHeight = relativePosition.y;
+
+    // Calculate the new height and the displacement along the wind direction using circular rotation
+    relativePosition.y = currentHeight * cos(windAngle);
+    float displacement = currentHeight * sin(windAngle);
+
+    relativePosition.x += windDirection.x * displacement;
+    relativePosition.z += windDirection.y * displacement;
+
+    // Update the model position with the rotated relative position
+    modelPosition.xyz = modelCenter.xyz + relativePosition;
+    
     // Final position
     vec4 viewPosition = viewMatrix * modelPosition;
     gl_Position = projectionMatrix * viewPosition;

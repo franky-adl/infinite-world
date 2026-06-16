@@ -27,6 +27,8 @@ export default function GrassMaterial() {
             uSunPosition: { value: null },
             uMoonPosition: { value: null },
             uDawnGrassColor: { value: null },
+            uRustleScale: { value: 0.2 },
+            uWindGustStrength: { value: 1.0 },
         },
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
