@@ -8,14 +8,17 @@ import TerrainGradient from "./TerrainGradient.js";
 import TerrainMaterial from "./Materials/TerrainMaterial.js";
 
 export default class Terrains {
-    constructor() {
+    constructor(noiseTexture) {
         this.game = Game.getInstance();
         this.state = State.getInstance();
+        this.time = this.state.time;
         this.view = View.getInstance();
         this.debug = View.getInstance();
 
         this.viewport = this.state.viewport;
         this.sky = this.view.sky;
+        // use the shared noiseTexture created from parent(need to sync with Terrain)
+        this.noiseTexture = noiseTexture || this.noises.create(128, 128);
 
         this.setGradient();
         this.setMaterial();
@@ -36,12 +39,14 @@ export default class Terrains {
 
     setMaterial() {
         this.material = new TerrainMaterial();
+        this.material.uniforms.uTime.value = 0;
         this.material.uniforms.uPlayerPosition.value = new THREE.Vector3();
         this.material.uniforms.uGradientTexture.value = this.gradient.texture;
         this.material.uniforms.uLightnessSmoothness.value = 0.25;
         this.material.uniforms.uFresnelOffset.value = 0;
         this.material.uniforms.uFresnelScale.value = 0.5;
         this.material.uniforms.uFresnelPower.value = 2;
+        this.material.uniforms.uNoiseTexture.value = this.noiseTexture;
         this.material.uniforms.uSunPosition.value = new THREE.Vector3(
             -0.5,
             -0.5,
@@ -124,6 +129,7 @@ export default class Terrains {
         const sunState = this.state.sun;
         const moonState = this.state.moon;
 
+        this.material.uniforms.uTime.value = this.time.elapsed;
         this.material.uniforms.uPlayerPosition.value.set(
             playerPosition[0],
             playerPosition[1],

@@ -2,6 +2,8 @@
 
 uniform vec3 uPlayerPosition;
 uniform float uLightnessSmoothness;
+uniform float uTime;
+uniform sampler2D uNoiseTexture;
 uniform float uFresnelOffset;
 uniform float uFresnelScale;
 uniform float uFresnelPower;
@@ -25,10 +27,9 @@ varying vec3 vColor;
 #include ../partials/getFogColor.glsl;
 #include ../partials/getGrassAttenuation.glsl;
 
-vec3 getReflectionColor(vec3 baseColor, float sunReflection)
+vec3 getReflectionColor(vec3 baseColor, float sunReflection, float dawnIntensity)
 {
     vec3 white = vec3(1.0, 1.0, 1.0);
-    float dawnIntensity = getDawnCycleIntensity();
     vec3 sunReflectionColor = mix(white, uDawnGrassColor, dawnIntensity);
     return mix(baseColor, sunReflectionColor, clamp(sunReflection, 0.0, 1.0));
 }
@@ -66,10 +67,17 @@ void main()
     color = getSunShadeColor(color, sunShade);
 
     // Sun & Moon reflection
+    float dawnIntensity = getDawnCycleIntensity();
     vec3 viewDirection = normalize(modelPosition.xyz - cameraPosition);
     vec3 viewNormal = normalize(normalMatrix * normal);
     float sunReflection = getSunMoonReflection(viewDirection, worldNormal, viewNormal);
-    color = getReflectionColor(color, sunReflection);
+    color = getReflectionColor(color, sunReflection, dawnIntensity);
+
+    // Simulate Cloud Shadows
+    vec2 cloudUv = modelPosition.xz * 0.002 + uTime * 0.02;
+    float cloudShadow = texture2D(uNoiseTexture, cloudUv).g;
+    float adjustedShadow = mix(cloudShadow, 1.0, dawnIntensity); // no cloud shadows during dawn
+    color *= mix(0.4, 1.0, adjustedShadow);
 
     // Fog
     vec2 screenUv = (gl_Position.xy / gl_Position.w * 0.5) + 0.5;

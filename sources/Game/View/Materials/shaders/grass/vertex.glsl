@@ -40,10 +40,9 @@ varying vec3 vColor;
 #include ../partials/getGrassAttenuation.glsl;
 #include ../partials/getRotatePivot2d.glsl;
 
-vec3 getReflectionColor(vec3 baseColor, float sunReflection, float tipness)
+vec3 getReflectionColor(vec3 baseColor, float sunReflection, float tipness, float dawnIntensity)
 {
     vec3 white = vec3(1.0, 1.0, 1.0);
-    float dawnIntensity = getDawnCycleIntensity();
     vec3 sunReflectionColor = mix(white, uDawnGrassColor, dawnIntensity);
     return mix(baseColor, sunReflectionColor, clamp(sunReflection, 0.0, 1.0) * (tipness * 0.5 + 0.5));
 }
@@ -155,10 +154,17 @@ void main()
     color = getSunShadeColor(color, sunShade);
 
     // Sun & Moon reflection - lerps to white based on sun reflection and fresnel amount
+    float dawnIntensity = getDawnCycleIntensity();
     vec3 viewDirection = normalize(modelPosition.xyz - cameraPosition);
     vec3 viewNormal = normalize(normalMatrix * normal);
     float sunReflection = getSunMoonReflection(viewDirection, worldNormal, viewNormal);
-    color = getReflectionColor(color, sunReflection, tipness);
+    color = getReflectionColor(color, sunReflection, tipness, dawnIntensity);
+
+    // Simulate Cloud Shadows
+    vec2 cloudUv = modelCenter.xz * 0.002 + uTime * 0.02;
+    float cloudShadow = texture2D(uNoiseTexture, cloudUv).g;
+    float adjustedShadow = mix(cloudShadow, 1.0, dawnIntensity); // no cloud shadows during dawn
+    color *= mix(0.4, 1.0, adjustedShadow);
 
     vColor = color;
     // vColor = vec3(slope);

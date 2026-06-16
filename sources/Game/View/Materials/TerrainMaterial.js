@@ -6,9 +6,11 @@ import fragmentShader from "./shaders/terrain/fragment.glsl";
 export default function TerrainMaterial() {
     const material = new THREE.ShaderMaterial({
         uniforms: {
+            uTime: { value: null },
             uPlayerPosition: { value: null },
             uGradientTexture: { value: null },
             uLightnessSmoothness: { value: null },
+            uNoiseTexture: { value: null },
             uFresnelOffset: { value: null },
             uFresnelScale: { value: null },
             uFresnelPower: { value: null },

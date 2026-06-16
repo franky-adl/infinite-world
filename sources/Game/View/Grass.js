@@ -6,7 +6,7 @@ import State from "@/State/State.js";
 import GrassMaterial from "./Materials/GrassMaterial.js";
 
 export default class Grass {
-    constructor() {
+    constructor(noiseTexture) {
         this.game = Game.getInstance();
         this.view = View.getInstance();
         this.state = State.getInstance();
@@ -30,7 +30,8 @@ export default class Grass {
         this.positionRandomness = 1.0;
         this.curveRandomness = 0.5;
         this.rotationRandomness = 0.25;
-        this.noiseTexture = this.noises.create(128, 128);
+        // use the shared noiseTexture created from parent(need to sync with Terrain)
+        this.noiseTexture = noiseTexture || this.noises.create(128, 128);
 
         this.setGeometry();
         this.setMaterial();
