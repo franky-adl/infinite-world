@@ -22,7 +22,7 @@ varying vec3 vSunColor;
 #define DENSITY_THRESHOLD 0.01
 #define MAX_OPTICAL_DEPTH 60.0  // for early raymarch break; higher values → fewer early breaks but more potential overdraw
 #define CLOUD_SCALE       400.0
-#define ABSORPTION        0.05   // controls how quickly optical depth saturates to white
+#define ABSORPTION        0.035   // controls how quickly optical depth saturates to white
 #define LIGHT_ABSORPTION  0.02   // absorption for upward light rays (stronger → darker undersides)
 #define CLOUD_SPEED       15.0  // world-units per millisecond scrolled in x
 #define M_THRES           0.01  // ray y-threshold: below this blends fully into sky, raymarching skipped
