@@ -24,6 +24,7 @@ export default class Terrains {
         this.setMaterial();
         this.setDebug();
 
+        // engine Terrain is the state Terrain.js instance
         this.state.terrains.events.on("create", (engineTerrain) => {
             const terrain = new Terrain(this, engineTerrain);
 

@@ -12,9 +12,9 @@ import Chunk from "./Chunk.js";
  * --------
  * Chunks manages a dynamic quadtree of terrain tiles centred on the player.
  * It lives in the State layer and drives geometry creation purely through data
- * and events. The View layer (View/Chunks.js) listens to those events and
- * creates the corresponding Three.js meshes.
- *
+ * and events. The View layer (View/Chunks.js) manages the view representation
+ * of the quadtree, while View/Terrains.js (driven by the chunks) manages the
+ * actual terrain meshes.
  *
  * KEY PARAMETERS
  * --------------
@@ -93,6 +93,7 @@ import Chunk from "./Chunk.js";
  *
  * TERRAIN CREATION
  * ----------------
+ * (Also check the chunknTerrain-readystates.png at the project root for a simplified diagram)
  * Only chunks flagged as `final` request geometry. The `final` flag does not
  * simply mean "at maxDepth" — it tracks which chunk is currently the visible
  * leaf, and it changes dynamically as the tree splits and unsplits:
@@ -208,6 +209,7 @@ export default class Chunks {
         for (const [key, chunk] of this.mainChunks) {
             if (
                 !mainChunksCoordinates.find(
+                    // the key is like a multiple of maxSize, e.g. "3,5" or "-1,2"
                     (coordinates) => coordinates.key === key,
                 )
             ) {
@@ -223,15 +225,15 @@ export default class Chunks {
                     null,
                     null,
                     this.maxSize,
-                    coordinates.x,
-                    coordinates.z,
+                    coordinates.x, // world coordinate of chunk center.x
+                    coordinates.z, // world coordinate of chunk center.z
                     0,
                 );
                 this.mainChunks.set(coordinates.key, chunk);
             }
         }
 
-        // Check chunks
+        // Check chunks, this will recursively split/unsplit the quadtree
         for (const [key, chunk] of this.mainChunks) chunk.check();
 
         // Update neighbours
@@ -241,6 +243,11 @@ export default class Chunks {
     update() {
         // Check only if player coordinates changed to to another minimal chunk
         const player = this.state.player;
+        // The playerChunkKey marks the player's current minSize/2 grid cell. It is used to avoid calling check() every frame, which would be expensive.
+        // The math here basically marks 3 possible numbers for x or z coordinate:
+        // N+1 when player is at 0-0.49 of the chunk,
+        // N+2 when player is at 0.5-0.99 of the chunk and
+        // N+3 when player is at 1.0(edge) of the chunk
         const playerChunkKey = `${Math.round((player.position.current[0] / this.minSize) * 2 + 0.5)}${Math.round((player.position.current[2] / this.minSize) * 2 + 0.5)}`;
 
         if (playerChunkKey !== this.playerChunkKey) {
@@ -252,14 +259,15 @@ export default class Chunks {
         for (const [key, chunk] of this.mainChunks) chunk.update();
     }
 
-    create(parent, quadPosition, halfSize, x, z, depth) {
+    // quadPosition is one of "nw", "ne", "sw", "se", or null if root chunk
+    create(parent, quadPosition, size, x, z, depth) {
         const id = this.lastId++;
         const chunk = new Chunk(
             id,
             this,
             parent,
             quadPosition,
-            halfSize,
+            size,
             x,
             z,
             depth,
@@ -293,11 +301,11 @@ export default class Chunks {
         }
 
         // All not main chunks in depth order
-        const chunks = [...this.allChunks.values()]
+        const subChunks = [...this.allChunks.values()]
             .filter((chunk) => chunk.depth > 0)
             .sort((a, b) => a.depth - b.depth);
 
-        for (const chunk of chunks) {
+        for (const chunk of subChunks) {
             let nChunk = false;
             let eChunk = false;
             let sChunk = false;

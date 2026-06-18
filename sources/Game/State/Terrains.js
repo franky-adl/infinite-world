@@ -219,7 +219,7 @@ export default class Terrains {
 
         this.seed = this.game.seed + "bx";
         this.random = new seedrandom(this.seed);
-        this.subdivisions = 80;
+        this.subdivisions = 100;
         this.lacunarity = 2.05;
         this.persistence = 0.45;
         this.maxIterations = 4;
@@ -252,12 +252,14 @@ export default class Terrains {
     setWorkers() {
         this.worker = TerrainWorker();
 
+        // On receiving worker data, look up the matching Terrain and call create() with the returned data
         this.worker.onmessage = (event) => {
             // console.timeEnd(`terrains: worker (${event.data.id})`)
 
             const terrain = this.terrains.get(event.data.id);
 
             if (terrain) {
+                // This will trigger the ready event for the terrain
                 terrain.create(event.data);
             }
         };
