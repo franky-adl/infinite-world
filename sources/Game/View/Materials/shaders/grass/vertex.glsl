@@ -23,6 +23,7 @@ uniform vec3 uMoonPosition;
 uniform vec3 uDawnGrassColor;
 uniform float uRustleScale;
 uniform float uWindGustStrength;
+uniform float uWaterLevel;
 
 attribute vec2 center;
 attribute float tipness;
@@ -98,7 +99,11 @@ void main()
 
     // Attenuation - shrink in scale as it gets farther or on steeper slope
     float distanceScale = getGrassAttenuation(modelCenter.xz); // starts from 1, starts to drop if grass if farther than 30% of the half size
-    float scale = distanceScale;
+    
+    // Water level attenuation
+    float waterScale = smoothstep(uWaterLevel - 0.5, uWaterLevel + 0.5, modelCenter.y);
+    
+    float scale = distanceScale * waterScale;
     modelPosition.xyz = mix(modelCenter.xyz, modelPosition.xyz, scale);
 
     // Individual Rustles

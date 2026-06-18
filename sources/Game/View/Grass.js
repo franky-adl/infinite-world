@@ -296,6 +296,7 @@ export default class Grass {
             0.05,
         );
         this.material.uniforms.uWindGustStrength.value = 1.0;
+        this.material.uniforms.uWaterLevel.value = engineTerrains.waterLevel;
         // this.material.wireframe = true;
     }
 
@@ -310,6 +311,7 @@ export default class Grass {
         const dayState = this.state.day;
         const playerPosition = playerState.position.current;
         const engineChunks = this.state.chunks;
+        const engineTerrains = this.state.terrains;
         const sunState = this.state.sun;
         const moonState = this.state.moon;
 
@@ -325,6 +327,7 @@ export default class Grass {
             moonState.position.z,
         );
         this.material.uniforms.uDayCycleProgress.value = dayState.progress;
+        this.material.uniforms.uWaterLevel.value = engineTerrains.waterLevel;
 
         // The grass mesh always moves with the player
         this.mesh.position.set(playerPosition[0], 0, playerPosition[2]);

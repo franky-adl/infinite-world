@@ -21,6 +21,7 @@ export default function TerrainMaterial() {
             uTexture: { value: null },
             uDayCycleProgress: { value: null },
             uDawnGrassColor: { value: null },
+            uWaterLevel: { value: null },
         },
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,

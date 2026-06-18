@@ -42,6 +42,34 @@ export default class Terrain {
             );
 
             this.mesh.geometry = this.geometry;
+
+            // Water
+            this.waterGeometry.dispose();
+            this.waterGeometry = new THREE.BufferGeometry();
+            this.waterGeometry.setAttribute(
+                "position",
+                new THREE.Float32BufferAttribute(
+                    this.terrainState.waterPositions,
+                    3,
+                ),
+            );
+            this.waterGeometry.setAttribute(
+                "normal",
+                new THREE.Float32BufferAttribute(
+                    this.terrainState.waterNormals,
+                    3,
+                ),
+            );
+            this.waterGeometry.setAttribute(
+                "uv",
+                new THREE.Float32BufferAttribute(this.terrainState.waterUV, 2),
+            );
+            this.waterGeometry.index = new THREE.BufferAttribute(
+                this.terrainState.waterIndices,
+                1,
+                false,
+            );
+            this.waterMesh.geometry = this.waterGeometry;
         }
 
         // Create
@@ -91,6 +119,38 @@ export default class Terrain {
             // this.mesh = new THREE.Mesh(this.geometry, new THREE.MeshNormalMaterial())
             this.scene.add(this.mesh);
 
+            // Water mesh
+            this.waterGeometry = new THREE.BufferGeometry();
+            this.waterGeometry.setAttribute(
+                "position",
+                new THREE.Float32BufferAttribute(
+                    this.terrainState.waterPositions,
+                    3,
+                ),
+            );
+            this.waterGeometry.setAttribute(
+                "normal",
+                new THREE.Float32BufferAttribute(
+                    this.terrainState.waterNormals,
+                    3,
+                ),
+            );
+            this.waterGeometry.setAttribute(
+                "uv",
+                new THREE.Float32BufferAttribute(this.terrainState.waterUV, 2),
+            );
+            this.waterGeometry.index = new THREE.BufferAttribute(
+                this.terrainState.waterIndices,
+                1,
+                false,
+            );
+
+            this.waterMesh = new THREE.Mesh(
+                this.waterGeometry,
+                this.terrains.waterMaterial,
+            );
+            this.scene.add(this.waterMesh);
+
             this.created = true;
         }
     }
@@ -101,6 +161,9 @@ export default class Terrain {
         if (this.created) {
             this.geometry.dispose();
             this.scene.remove(this.mesh);
+
+            this.waterGeometry.dispose();
+            this.scene.remove(this.waterMesh);
         }
     }
 }

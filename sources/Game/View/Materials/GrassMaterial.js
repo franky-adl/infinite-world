@@ -29,6 +29,7 @@ export default function GrassMaterial() {
             uDawnGrassColor: { value: null },
             uRustleScale: { value: 0.2 },
             uWindGustStrength: { value: 1.0 },
+            uWaterLevel: { value: null },
         },
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,

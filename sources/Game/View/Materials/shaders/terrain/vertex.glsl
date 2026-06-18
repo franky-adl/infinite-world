@@ -14,6 +14,7 @@ uniform sampler2D uTexture;
 uniform sampler2D uFogTexture;
 uniform float uDayCycleProgress;
 uniform vec3 uDawnGrassColor;
+uniform float uWaterLevel;
 
 varying vec3 vColor;
 
@@ -60,6 +61,11 @@ void main()
     vec3 grassColor = mix(uGrassShadedColor, uGrassDefaultColor, 1.0 - grassAttenuation);
 
     vec3 color = grassColor;
+
+    // Underwater color
+    vec3 waterColor = vec3(0.05, 0.1, 0.2);
+    float underwaterFactor = smoothstep(uWaterLevel, uWaterLevel - 5.0, modelPosition.y);
+    color = mix(color, waterColor * 0.5, underwaterFactor);
 
     // Sun shade
     vec3 worldNormal = normalize(modelMatrix * vec4(normal, 0.0)).xyz;

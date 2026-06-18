@@ -6,6 +6,7 @@ import State from "@/State/State.js";
 import Terrain from "./Terrain.js";
 import TerrainGradient from "./TerrainGradient.js";
 import TerrainMaterial from "./Materials/TerrainMaterial.js";
+import WaterMaterial from "./Materials/WaterMaterial.js";
 
 export default class Terrains {
     constructor(noiseTexture) {
@@ -66,6 +67,8 @@ export default class Terrains {
             0.6,
             0.05,
         );
+        this.material.uniforms.uWaterLevel.value =
+            this.state.terrains.waterLevel;
 
         this.material.onBeforeRender = (
             renderer,
@@ -77,6 +80,26 @@ export default class Terrains {
             this.material.uniforms.uTexture.value = mesh.userData.texture;
             this.material.uniformsNeedUpdate = true;
         };
+
+        this.waterMaterial = new WaterMaterial();
+        this.waterMaterial.uniforms.uTime.value = 0;
+        this.waterMaterial.uniforms.uNoiseTexture.value = this.noiseTexture;
+        this.waterMaterial.uniforms.uSunPosition.value = new THREE.Vector3(
+            -0.5,
+            -0.5,
+            -0.5,
+        );
+        this.waterMaterial.uniforms.uMoonPosition.value = new THREE.Vector3(
+            0.5,
+            0.5,
+            0.5,
+        );
+        this.waterMaterial.uniforms.uFogTexture.value =
+            this.sky.customRender.texture;
+        this.waterMaterial.uniforms.uDayCycleProgress.value = 0;
+        this.waterMaterial.uniforms.uFresnelOffset.value = 0;
+        this.waterMaterial.uniforms.uFresnelScale.value = 0.5;
+        this.waterMaterial.uniforms.uFresnelPower.value = 2;
 
         // this.material.wireframe = true
 
@@ -122,6 +145,29 @@ export default class Terrains {
             .max(10)
             .step(1)
             .name("uFresnelPower");
+
+        const waterFolder = debug.ui.getFolder("view/water");
+
+        waterFolder
+            .add(this.waterMaterial.uniforms.uFresnelOffset, "value")
+            .min(-1)
+            .max(1)
+            .step(0.001)
+            .name("uFresnelOffset");
+
+        waterFolder
+            .add(this.waterMaterial.uniforms.uFresnelScale, "value")
+            .min(0)
+            .max(2)
+            .step(0.001)
+            .name("uFresnelScale");
+
+        waterFolder
+            .add(this.waterMaterial.uniforms.uFresnelPower, "value")
+            .min(1)
+            .max(10)
+            .step(1)
+            .name("uFresnelPower");
     }
 
     update() {
@@ -147,6 +193,20 @@ export default class Terrains {
             moonState.position.z,
         );
         this.material.uniforms.uDayCycleProgress.value =
+            this.state.day.progress;
+
+        this.waterMaterial.uniforms.uTime.value = this.time.elapsed;
+        this.waterMaterial.uniforms.uSunPosition.value.set(
+            sunState.position.x,
+            sunState.position.y,
+            sunState.position.z,
+        );
+        this.waterMaterial.uniforms.uMoonPosition.value.set(
+            moonState.position.x,
+            moonState.position.y,
+            moonState.position.z,
+        );
+        this.waterMaterial.uniforms.uDayCycleProgress.value =
             this.state.day.progress;
     }
 

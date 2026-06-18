@@ -227,6 +227,7 @@ export default class Terrains {
         this.baseAmplitude = 30;
         this.power = 1;
         this.elevationOffset = 1;
+        this.waterLevel = -0;
 
         this.segments = this.subdivisions + 1;
         this.iterationsFormula = Terrains.ITERATIONS_FORMULA_POWERMIX;
@@ -312,6 +313,7 @@ export default class Terrains {
             power: this.power,
             elevationOffset: this.elevationOffset,
             iterationsOffsets: this.iterationsOffsets,
+            waterLevel: this.waterLevel,
         });
 
         this.events.emit("create", terrain);
@@ -351,6 +353,7 @@ export default class Terrains {
                 power: this.power,
                 elevationOffset: this.elevationOffset,
                 iterationsOffsets: this.iterationsOffsets,
+                waterLevel: this.waterLevel,
             });
         }
     }

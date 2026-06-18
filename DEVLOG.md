@@ -46,6 +46,17 @@
 - Main reference comes from SimonDev's thread on X: https://x.com/iced_coffee_dev/status/2062582405269991638
 - Main idea is that the movements comes from smaller individual rustles and the bigger gusts of wind causing the whole patch of grass to sway. And you can use the same noise texture for both, just with different UV scales and time speeds.
 
+### Adding water to the terrain
+
+- I've read through the quadtree chunking system once more to understand the best and most efficient way to add water. And currently I settled with the approach of calculating additional water related data in the same terrain worker, and then in the view layer of terrain, also add the water mesh alongside the terrain mesh. Such that the whole quadtree chunking system is also used for the water mesh generation, same logic, without a whole new set of classes for the water.
+- For the water level, I maintained a single source of truth by defining it once in the State Terrains class.
+- I've only added 4 vertexes for each water chunk, and it seems to do just fine. And for the water color, I reused the noise texture for terrain/grass, with some abs operations and layering, I created a somewhat acceptable shader for the water surface.
+
+#### TODOS
+
+- I still need to work on the colors a bit though as it's a bit weird during the dawn/dusk hour.
+- I need to fix the seam issue at water mesh boundaries, the current fragment colors is probably breaking the seams?
+
 ### Useful References
 
 - SimonDev on "How Big Budget AAA Games Render Clouds" [https://www.youtube.com/watch?v=Qj_tK_mdRcA]

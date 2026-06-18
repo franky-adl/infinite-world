@@ -24,6 +24,11 @@ export default class Terrain {
         this.texture = data.texture;
         this.uv = data.uv;
 
+        this.waterPositions = data.waterPositions;
+        this.waterNormals = data.waterNormals;
+        this.waterIndices = data.waterIndices;
+        this.waterUV = data.waterUV;
+
         this.ready = true;
 
         // This is listened by the View Terrain.js instance that actually creates the mesh
