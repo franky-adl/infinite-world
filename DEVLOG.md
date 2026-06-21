@@ -57,6 +57,14 @@
 - (fixed) I still need to work on the colors a bit though as it's a bit weird during the dawn/dusk hour.
 - I need to fix the seam issue at water mesh boundaries, the current fragment colors is probably breaking the seams?
 
+### Adding character model and animations
+
+- Loaded the character model `Michelle.glb` using `GLTFLoader`.
+- I followed this youtube tutorial to combine the model with animations [https://www.youtube.com/watch?v=C3L1pVIxOgA], assets downloaded from Mixamo.
+- To keep the player consistent with the world's lighting, I extended the character's materials using `onBeforeCompile`. This allows injecting custom uniforms (`uSunPosition`, `uMoonPosition`, `uDayCycleProgress`) and GLSL logic to calculate a "faked" directional light that follows the sun/moon cycle.
+- Added a subtle ambient light term in the shader to prevent the player from being completely black at night.
+- Implemented animation state handling using `THREE.AnimationMixer`. The player now transitions between `Idle`, `Running`, and `Swimming` clips based on their speed and whether they are below the `swimmingLevel` defined in the terrain state.
+
 ### Useful References
 
 - SimonDev on "How Big Budget AAA Games Render Clouds" [https://www.youtube.com/watch?v=Qj_tK_mdRcA]

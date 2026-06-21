@@ -8,10 +8,10 @@ export default class DayCycle {
         this.state = State.getInstance();
         this.debug = Debug.getInstance();
 
-        this.autoUpdate = false;
+        this.autoUpdate = true;
         this.timeProgress = 0;
         this.progress = 0.0;
-        this.duration = 30; // Seconds
+        this.duration = 40; // Seconds
 
         this.setDebug();
     }

@@ -15,10 +15,9 @@ export default class Debug {
 
         this.active = false;
 
-        // if(location.hash === '#debug')
-        // {
-        this.activate();
-        // }
+        if (location.hash === "#debug") {
+            this.activate();
+        }
     }
 
     activate() {
