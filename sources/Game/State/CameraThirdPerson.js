@@ -35,7 +35,9 @@ export default class CameraThirdPerson {
         // Determine the spherical angles based on pointer input
         // Phi is the polar angle from the polar axis (Y-axis) which is clamped between the phiLimits (0.1 - 3.04)
         // Theta is the azimuthal angle in the XZ plane around the polar axis
-        if (this.controls.pointer.down || this.viewport.pointerLock.active) {
+        if (
+            this.controls.pointer.down /* || this.viewport.pointerLock.active */
+        ) {
             const normalisedPointer = this.viewport.normalise(
                 this.controls.pointer.delta,
             );
