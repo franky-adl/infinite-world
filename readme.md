@@ -1,10 +1,8 @@
 # Infinite World
 
-Just an infinite procedurally generated world in WebGL with Three.js.
+An infinite world demo forked from Bruno Simon's original project, with the main goal of learning procedural world generation techniques, shader programming, and optimization strategies in Three.js.
 
-No purpose, just having fun.
-
-![Infinite World Screenshot](public/social/share-1200x630.png?raw=true "Infinite World Screenshot")
+This version features expressive environment lighting under the dynamic day/night cycles, volumetric clouds via raymarching technique, realistic grass simulating wind effects, and a character model with various animations for different travelling modes.
 
 ## Instructions
 

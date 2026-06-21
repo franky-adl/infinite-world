@@ -29,7 +29,7 @@ export default class Player {
         this.loader = new GLTFLoader();
         this.materials = [];
 
-        this.loader.load("/model/Michelle.glb", (gltf) => {
+        this.loader.load("./model/Michelle.glb", (gltf) => {
             this.model = gltf.scene;
             this.model.scale.set(3, 3, 3);
             this.group.add(this.model);
