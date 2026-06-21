@@ -434,51 +434,55 @@ onmessage = function (event) {
     /**
      * Water
      */
-    const waterPositions = new Float32Array(4 * 3);
-    const waterNormals = new Float32Array(4 * 3);
-    const waterUV = new Float32Array(4 * 2);
-    const waterIndices = new Uint16Array(6);
+    const waterPositions = new Float32Array(segments * segments * 3);
+    const waterNormals = new Float32Array(segments * segments * 3);
+    const waterUV = new Float32Array(segments * segments * 2);
+    const waterIndices = new (indicesCount < 65535 ? Uint16Array : Uint32Array)(
+        indicesCount * 6,
+    );
 
-    // Positions (Relative to baseX, baseZ)
-    waterPositions[0] = baseX - size * 0.5;
-    waterPositions[1] = waterLevel; // Height
-    waterPositions[2] = baseZ - size * 0.5;
+    for (let iZ = 0; iZ < segments; iZ++) {
+        const z = baseZ + (iZ / subdivisions - 0.5) * size;
+        for (let iX = 0; iX < segments; iX++) {
+            const x = baseX + (iX / subdivisions - 0.5) * size;
 
-    waterPositions[3] = baseX + size * 0.5;
-    waterPositions[4] = waterLevel;
-    waterPositions[5] = baseZ - size * 0.5;
+            const iStride = (iZ * segments + iX) * 3;
+            const iUVStride = (iZ * segments + iX) * 2;
 
-    waterPositions[6] = baseX - size * 0.5;
-    waterPositions[7] = waterLevel;
-    waterPositions[8] = baseZ + size * 0.5;
+            // Positions
+            waterPositions[iStride] = x;
+            waterPositions[iStride + 1] = waterLevel;
+            waterPositions[iStride + 2] = z;
 
-    waterPositions[9] = baseX + size * 0.5;
-    waterPositions[10] = waterLevel;
-    waterPositions[11] = baseZ + size * 0.5;
+            // Normals
+            waterNormals[iStride] = 0;
+            waterNormals[iStride + 1] = 1;
+            waterNormals[iStride + 2] = 0;
 
-    // Normals
-    waterNormals[1] = 1;
-    waterNormals[4] = 1;
-    waterNormals[7] = 1;
-    waterNormals[10] = 1;
+            // UV
+            waterUV[iUVStride] = iX / (segments - 1);
+            waterUV[iUVStride + 1] = iZ / (segments - 1);
+        }
+    }
 
-    // UV
-    waterUV[0] = 0;
-    waterUV[1] = 0;
-    waterUV[2] = 1;
-    waterUV[3] = 0;
-    waterUV[4] = 0;
-    waterUV[5] = 1;
-    waterUV[6] = 1;
-    waterUV[7] = 1;
+    for (let iZ = 0; iZ < subdivisions; iZ++) {
+        for (let iX = 0; iX < subdivisions; iX++) {
+            const row = subdivisions + 1;
+            const a = iZ * row + iX;
+            const b = iZ * row + (iX + 1);
+            const c = (iZ + 1) * row + iX;
+            const d = (iZ + 1) * row + (iX + 1);
 
-    // Indices
-    waterIndices[0] = 0;
-    waterIndices[1] = 3;
-    waterIndices[2] = 1;
-    waterIndices[3] = 0;
-    waterIndices[4] = 2;
-    waterIndices[5] = 3;
+            const iStride = (iZ * subdivisions + iX) * 6;
+            waterIndices[iStride] = a;
+            waterIndices[iStride + 1] = d;
+            waterIndices[iStride + 2] = b;
+
+            waterIndices[iStride + 3] = d;
+            waterIndices[iStride + 4] = a;
+            waterIndices[iStride + 5] = c;
+        }
+    }
 
     // Post
     postMessage({

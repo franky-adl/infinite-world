@@ -1,15 +1,15 @@
-float getSunMoonReflection(vec3 viewDirection, vec3 worldNormal, vec3 viewNormal)
+float getSunMoonReflection(vec3 viewDirection, vec3 worldNormal)
 {
-    vec3 sunViewReflection = reflect(uSunPosition, viewNormal);
-    vec3 moonViewReflection = reflect(uMoonPosition, viewNormal);
+    vec3 sunViewReflection = normalize(reflect(-uSunPosition, worldNormal));
+    vec3 moonViewReflection = normalize(reflect(-uMoonPosition, worldNormal));
 
-    float sunDot = dot(sunViewReflection, viewDirection);
-    float moonDot = dot(moonViewReflection, viewDirection);
+    float sunDot = dot(sunViewReflection, -viewDirection);
+    float moonDot = dot(moonViewReflection, -viewDirection);
 
     // only start leaning into moon reflection after the sun is below horizon(to maintain nice dawn reflections)
     float nightFactor = -1. * min(cos(uDayCycleProgress * 2.0 * M_PI), 0.);
     float combinedDot = mix(sunDot, moonDot, nightFactor);
-    float sunViewStrength = max(0.0, combinedDot);
+    float sunViewStrength = clamp(combinedDot, 0.0, 1.0);
     // increase fresnel effect at dawn
     float fresnelScale = mix(0.3, 1.0, getDawnCycleIntensity());
     // viewDirection points from cam to world, so fresnel maxes at grazing angles

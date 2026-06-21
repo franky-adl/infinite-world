@@ -227,7 +227,7 @@ export default class Terrains {
         this.baseAmplitude = 30;
         this.power = 1;
         this.elevationOffset = 1;
-        this.waterLevel = -0;
+        this.waterLevel = -10;
 
         this.segments = this.subdivisions + 1;
         this.iterationsFormula = Terrains.ITERATIONS_FORMULA_POWERMIX;

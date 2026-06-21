@@ -54,7 +54,7 @@
 
 #### TODOS
 
-- I still need to work on the colors a bit though as it's a bit weird during the dawn/dusk hour.
+- (fixed) I still need to work on the colors a bit though as it's a bit weird during the dawn/dusk hour.
 - I need to fix the seam issue at water mesh boundaries, the current fragment colors is probably breaking the seams?
 
 ### Useful References

@@ -75,8 +75,7 @@ void main()
     // Sun & Moon reflection
     float dawnIntensity = getDawnCycleIntensity();
     vec3 viewDirection = normalize(modelPosition.xyz - cameraPosition);
-    vec3 viewNormal = normalize(normalMatrix * normal);
-    float sunReflection = getSunMoonReflection(viewDirection, worldNormal, viewNormal);
+    float sunReflection = getSunMoonReflection(viewDirection, worldNormal);
     color = getReflectionColor(color, sunReflection, dawnIntensity);
 
     // Simulate Cloud Shadows

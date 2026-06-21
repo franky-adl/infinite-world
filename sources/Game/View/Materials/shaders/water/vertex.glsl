@@ -15,13 +15,32 @@ varying float vDepth;
 varying vec2 vScreenUv;
 varying vec2 vUv;
 varying float vSunReflection;
+varying float vFogIntensity;
 
 #include ../partials/getDawnCycleIntensity.glsl;
 #include ../partials/getSunShade.glsl;
 #include ../partials/getSunShadeColor.glsl;
-#include ../partials/getSunMoonReflection.glsl;
 #include ../partials/getFogColor.glsl;
 
+float getSunMoonReflection(vec3 viewDirection, vec3 worldNormal)
+{
+    vec3 sunViewReflection = normalize(reflect(-uSunPosition, worldNormal));
+    vec3 moonViewReflection = normalize(reflect(-uMoonPosition, worldNormal));
+
+    float sunDot = dot(sunViewReflection, -viewDirection);
+    float moonDot = dot(moonViewReflection, -viewDirection);
+
+    // only start leaning into moon reflection after the sun is below horizon(to maintain nice dawn reflections)
+    float nightFactor = -1. * min(cos(uDayCycleProgress * 2.0 * M_PI), 0.);
+    float combinedDot = mix(sunDot, moonDot, nightFactor);
+    float sunViewStrength = clamp(combinedDot, 0.0, 1.0);
+    // viewDirection points from cam to world, so fresnel maxes at grazing angles
+    float fresnel = uFresnelOffset + 0.5 * (1.0 + dot(viewDirection, worldNormal));
+    float sunReflection = fresnel * sunViewStrength;
+    sunReflection = pow(sunReflection, uFresnelPower);
+
+    return sunReflection;
+}
 void main()
 {
     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
@@ -36,9 +55,9 @@ void main()
     vec3 worldNormal = normalize(modelMatrix * vec4(normal, 0.0)).xyz;
 
     // Base water color
-    vec3 waterColor = vec3(0.05, 0.15, 0.3);
+    vec3 waterColor = vec3(0.05, 0.15, 0.24);
     float dawnIntensity = getDawnCycleIntensity();
-    waterColor = mix(waterColor, vec3(0.1, 0.05, 0.02), dawnIntensity);
+    waterColor = mix(waterColor, vec3(0.15, 0.2, 0.2), dawnIntensity);
 
     // Sun shade
     float sunShade = getSunShade(worldNormal);
@@ -46,14 +65,14 @@ void main()
 
     // Sun & Moon reflection
     vec3 viewDirection = normalize(modelPosition.xyz - cameraPosition);
-    vec3 viewNormal = normalize(normalMatrix * normal);
-    float sunReflection = getSunMoonReflection(viewDirection, worldNormal, viewNormal);
-    vSunReflection = clamp(sunReflection, 0.0, 1.0);
+    float sunReflection = getSunMoonReflection(viewDirection, worldNormal);
     vec3 white = vec3(1.0, 1.0, 1.0);
-    color = mix(color, white, vSunReflection);
+    color = mix(color, white, sunReflection);
+    vSunReflection = sunReflection;
 
     // Fog
     color = getFogColor(color, vDepth, vScreenUv);
 
     vColor = color;
+    vFogIntensity = 1.0 - exp(- 0.0025 * 0.0025 * vDepth * vDepth );
 }
